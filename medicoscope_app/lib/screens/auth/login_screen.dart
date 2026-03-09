@@ -7,6 +7,8 @@ import 'package:medicoscope/core/widgets/animated_button.dart';
 import 'package:medicoscope/core/widgets/auth_text_field.dart';
 import 'package:medicoscope/core/widgets/theme_toggle_button.dart';
 import 'package:medicoscope/core/providers/auth_provider.dart';
+import 'package:medicoscope/screens/dashboard/patient_dashboard_screen.dart';
+import 'package:medicoscope/screens/dashboard/doctor_dashboard_screen.dart';
 import 'package:medicoscope/services/api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
@@ -46,11 +48,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Login successful!'),
-          backgroundColor: Colors.green.shade400,
+      final screen = authProvider.isPatient
+          ? const PatientDashboardScreen()
+          : const DoctorDashboardScreen();
+
+      Navigator.of(context).pushAndRemoveUntil(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => screen,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 600),
         ),
+        (route) => false,
       );
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -99,9 +109,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: isDark ? AppTheme.darkCard : Colors.white,
-                              borderRadius:
-                                  BorderRadius.circular(AppTheme.radiusSmall),
+                              color: isDark
+                                  ? AppTheme.darkCard
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(
+                                  AppTheme.radiusSmall),
                               boxShadow: AppTheme.cardShadow,
                             ),
                             child: Icon(
@@ -125,8 +137,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               gradient: AppTheme.orangeGradient,
                               boxShadow: [
                                 BoxShadow(
-                                  color:
-                                      AppTheme.primaryOrange.withOpacity(0.3),
+                                  color: AppTheme.primaryOrange
+                                      .withOpacity(0.3),
                                   blurRadius: 20,
                                   offset: const Offset(0, 6),
                                 ),
@@ -137,7 +149,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               size: 40,
                               color: Colors.white,
                             ),
-                          ).animate().fadeIn(duration: 600.ms).scale(
+                          )
+                              .animate()
+                              .fadeIn(duration: 600.ms)
+                              .scale(
                                 begin: const Offset(0.5, 0.5),
                                 end: const Offset(1, 1),
                                 curve: Curves.elasticOut,
@@ -176,7 +191,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   : AppTheme.textGray,
                             ),
                           ),
-                        ).animate().fadeIn(delay: 300.ms, duration: 600.ms),
+                        )
+                            .animate()
+                            .fadeIn(delay: 300.ms, duration: 600.ms),
 
                         const SizedBox(height: AppTheme.spacingXXLarge),
 
@@ -236,9 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // Login button
                         AnimatedButton(
-                          text: _isLoading
-                              ? AppStrings.get('signing_in', lang)
-                              : AppStrings.get('sign_in', lang),
+                          text: _isLoading ? AppStrings.get('signing_in', lang) : AppStrings.get('sign_in', lang),
                           icon: _isLoading ? null : Icons.login,
                           onPressed: _isLoading ? () {} : _login,
                           width: double.infinity,
@@ -276,7 +291,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
-                        ).animate().fadeIn(delay: 700.ms, duration: 600.ms),
+                        )
+                            .animate()
+                            .fadeIn(delay: 700.ms, duration: 600.ms),
                       ],
                     ),
                   ),

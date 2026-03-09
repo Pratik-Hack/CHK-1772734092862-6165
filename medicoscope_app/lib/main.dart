@@ -7,6 +7,7 @@ import 'package:medicoscope/core/theme/theme_provider.dart';
 import 'package:medicoscope/core/locale/locale_provider.dart';
 import 'package:medicoscope/core/providers/auth_provider.dart';
 import 'package:medicoscope/core/providers/coins_provider.dart';
+import 'package:medicoscope/core/providers/vitals_provider.dart';
 import 'package:medicoscope/screens/onboarding/user_guide_screen.dart';
 
 void main() {
@@ -35,6 +36,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CoinsProvider()),
+        ChangeNotifierProvider(create: (_) => VitalsProvider()),
       ],
       child: const MedicoScopeApp(),
     ),

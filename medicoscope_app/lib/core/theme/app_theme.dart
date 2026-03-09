@@ -6,15 +6,15 @@ class AppTheme {
   static const Color primaryOrange = Color(0xFFFF6B35);
   static const Color lightOrange = Color(0xFFFF8C61);
   static const Color darkOrange = Color(0xFFE85A2B);
-
+  
   static const Color backgroundLight = Color(0xFFF5F5F5);
   static const Color backgroundGray = Color(0xFFE8E8E8);
   static const Color cardWhite = Color(0xFFFFFFFF);
-
+  
   static const Color textDark = Color(0xFF2C2C2C);
   static const Color textGray = Color(0xFF757575);
   static const Color textLight = Color(0xFF9E9E9E);
-
+  
   // Gradient backgrounds
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
@@ -113,7 +113,7 @@ class AppTheme {
           ),
         ),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: cardWhite,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -127,7 +127,7 @@ class AppTheme {
   static const Color darkBackground = Color(0xFF1A1A1A);
   static const Color darkSurface = Color(0xFF2C2C2C);
   static const Color darkCard = Color(0xFF252525);
-
+  
   static const Color darkTextLight = Color(0xFFE8E8E8);
   static const Color darkTextGray = Color(0xFFB0B0B0);
   static const Color darkTextDim = Color(0xFF808080);
@@ -154,8 +154,7 @@ class AppTheme {
         error: Colors.red.shade400,
       ),
       scaffoldBackgroundColor: darkBackground,
-      textTheme:
-          GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
         displayLarge: GoogleFonts.inter(
           fontSize: 96,
           fontWeight: FontWeight.w300,
@@ -222,7 +221,7 @@ class AppTheme {
           ),
         ),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: darkCard,
         elevation: 0,
         shape: RoundedRectangleBorder(
