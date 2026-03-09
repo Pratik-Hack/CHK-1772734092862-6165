@@ -1,8 +1,9 @@
 class ApiConstants {
-  static const String baseUrl = 'https://medicoscope.onrender.com/api';
+  static const String baseUrl = 'https://medicoscope-server.onrender.com/api';
 
   // Chatbot
-  static const String chatbotBaseUrl = 'https://medicoscope-chatbot.onrender.com';
+  static const String chatbotBaseUrl =
+      'https://medicoscope-chatbot-mu7p.onrender.com';
 
   // Auth
   static const String register = '/auth/register';
@@ -24,7 +25,8 @@ class ApiConstants {
 
   // Mental Health
   static const String mentalHealthAnalyze = '/mental-health/analyze';
-  static const String mentalHealthNotifications = '/mental-health/notifications';
+  static const String mentalHealthNotifications =
+      '/mental-health/notifications';
 
   // Rewards
   static const String rewardsRedeem = '/rewards/redeem';
