@@ -47,7 +47,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _isLoading = false;
 
   final _bloodGroups = ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-  final _relationships = ['', 'Spouse', 'Parent', 'Child', 'Sibling', 'Friend', 'Other'];
+  final _relationships = [
+    '',
+    'Spouse',
+    'Parent',
+    'Child',
+    'Sibling',
+    'Friend',
+    'Other'
+  ];
 
   @override
   void dispose() {
@@ -81,17 +89,29 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ? _phoneController.text.trim()
             : null,
         // Patient fields
-        dateOfBirth: widget.role == 'patient' ? _dobController.text.trim() : null,
-        bloodGroup: widget.role == 'patient' && _bloodGroup.isNotEmpty ? _bloodGroup : null,
-        emergencyContactName: widget.role == 'patient' ? _emergencyNameController.text.trim() : null,
-        emergencyContactPhone: widget.role == 'patient' ? _emergencyPhoneController.text.trim() : null,
-        emergencyContactRelationship: widget.role == 'patient' && _emergencyRelationship.isNotEmpty
-            ? _emergencyRelationship
+        dateOfBirth:
+            widget.role == 'patient' ? _dobController.text.trim() : null,
+        bloodGroup: widget.role == 'patient' && _bloodGroup.isNotEmpty
+            ? _bloodGroup
             : null,
+        emergencyContactName: widget.role == 'patient'
+            ? _emergencyNameController.text.trim()
+            : null,
+        emergencyContactPhone: widget.role == 'patient'
+            ? _emergencyPhoneController.text.trim()
+            : null,
+        emergencyContactRelationship:
+            widget.role == 'patient' && _emergencyRelationship.isNotEmpty
+                ? _emergencyRelationship
+                : null,
         // Doctor fields
-        specialization: widget.role == 'doctor' ? _specializationController.text.trim() : null,
-        licenseNumber: widget.role == 'doctor' ? _licenseController.text.trim() : null,
-        hospital: widget.role == 'doctor' ? _hospitalController.text.trim() : null,
+        specialization: widget.role == 'doctor'
+            ? _specializationController.text.trim()
+            : null,
+        licenseNumber:
+            widget.role == 'doctor' ? _licenseController.text.trim() : null,
+        hospital:
+            widget.role == 'doctor' ? _hospitalController.text.trim() : null,
       );
 
       if (!mounted) return;
@@ -159,12 +179,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             height: 44,
                             decoration: BoxDecoration(
                               color: isDark ? AppTheme.darkCard : Colors.white,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusSmall),
                               boxShadow: AppTheme.cardShadow,
                             ),
                             child: Icon(
                               Icons.arrow_back,
-                              color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                              color: isDark
+                                  ? AppTheme.darkTextLight
+                                  : AppTheme.textDark,
                             ),
                           ),
                         ),
@@ -177,7 +200,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                            color: isDark
+                                ? AppTheme.darkTextLight
+                                : AppTheme.textDark,
                           ),
                         )
                             .animate()
@@ -194,35 +219,42 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ),
                           decoration: BoxDecoration(
                             gradient: isPatient
-                                ? const LinearGradient(
-                                    colors: [Color(0xFF4ECDC4), Color(0xFF44A08D)])
-                                : const LinearGradient(
-                                    colors: [Color(0xFF667EEA), Color(0xFF764BA2)]),
+                                ? const LinearGradient(colors: [
+                                    Color(0xFF4ECDC4),
+                                    Color(0xFF44A08D)
+                                  ])
+                                : const LinearGradient(colors: [
+                                    Color(0xFF667EEA),
+                                    Color(0xFF764BA2)
+                                  ]),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            isPatient ? AppStrings.get('patient', lang) : AppStrings.get('doctor', lang),
+                            isPatient
+                                ? AppStrings.get('patient', lang)
+                                : AppStrings.get('doctor', lang),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                        )
-                            .animate()
-                            .fadeIn(delay: 200.ms, duration: 600.ms),
+                        ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
 
                         const SizedBox(height: AppTheme.spacingXLarge),
 
                         // --- Common Fields ---
-                        _sectionTitle(AppStrings.get('personal_info', lang), isDark),
+                        _sectionTitle(
+                            AppStrings.get('personal_info', lang), isDark),
                         const SizedBox(height: AppTheme.spacingMedium),
 
                         AuthTextField(
                           controller: _nameController,
                           label: AppStrings.get('full_name', lang),
                           prefixIcon: Icons.person_outlined,
-                          validator: (v) => v == null || v.isEmpty ? AppStrings.get('name_required', lang) : null,
+                          validator: (v) => v == null || v.isEmpty
+                              ? AppStrings.get('name_required', lang)
+                              : null,
                         ),
                         const SizedBox(height: AppTheme.spacingMedium),
 
@@ -232,8 +264,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           prefixIcon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                           validator: (v) {
-                            if (v == null || v.isEmpty) return AppStrings.get('email_required', lang);
-                            if (!v.contains('@')) return AppStrings.get('email_invalid', lang);
+                            if (v == null || v.isEmpty)
+                              return AppStrings.get('email_required', lang);
+                            if (!v.contains('@'))
+                              return AppStrings.get('email_invalid', lang);
                             return null;
                           },
                         ),
@@ -254,15 +288,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           obscureText: _obscurePassword,
                           suffix: IconButton(
                             icon: Icon(
-                              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              _obscurePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               color: AppTheme.textGray,
                               size: 20,
                             ),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
                           ),
                           validator: (v) {
-                            if (v == null || v.isEmpty) return AppStrings.get('password_required', lang);
-                            if (v.length < 6) return AppStrings.get('min_6_chars', lang);
+                            if (v == null || v.isEmpty)
+                              return AppStrings.get('password_required', lang);
+                            if (v.length < 6)
+                              return AppStrings.get('min_6_chars', lang);
                             return null;
                           },
                         ),
@@ -275,14 +314,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           obscureText: _obscureConfirm,
                           suffix: IconButton(
                             icon: Icon(
-                              _obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              _obscureConfirm
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               color: AppTheme.textGray,
                               size: 20,
                             ),
-                            onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                            onPressed: () => setState(
+                                () => _obscureConfirm = !_obscureConfirm),
                           ),
                           validator: (v) {
-                            if (v != _passwordController.text) return AppStrings.get('passwords_mismatch', lang);
+                            if (v != _passwordController.text)
+                              return AppStrings.get('passwords_mismatch', lang);
                             return null;
                           },
                         ),
@@ -297,7 +340,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                         // Register button
                         AnimatedButton(
-                          text: _isLoading ? AppStrings.get('creating_account', lang) : AppStrings.get('create_account', lang),
+                          text: _isLoading
+                              ? AppStrings.get('creating_account', lang)
+                              : AppStrings.get('create_account', lang),
                           icon: _isLoading ? null : Icons.person_add,
                           onPressed: _isLoading ? () {} : _register,
                           width: double.infinity,
@@ -334,16 +379,47 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(now.year - 20),
+      firstDate: DateTime(1900),
+      lastDate: now,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: AppTheme.primaryOrange,
+                ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _dobController.text =
+            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      });
+    }
+  }
+
   List<Widget> _buildPatientFields(bool isDark, String lang) {
     return [
       _sectionTitle(AppStrings.get('health_info', lang), isDark),
       const SizedBox(height: AppTheme.spacingMedium),
 
-      AuthTextField(
-        controller: _dobController,
-        label: AppStrings.get('date_of_birth', lang),
-        prefixIcon: Icons.calendar_today_outlined,
-        keyboardType: TextInputType.datetime,
+      GestureDetector(
+        onTap: _pickDate,
+        child: AbsorbPointer(
+          child: AuthTextField(
+            controller: _dobController,
+            label: AppStrings.get('date_of_birth', lang),
+            prefixIcon: Icons.calendar_today_outlined,
+            hint: 'YYYY-MM-DD',
+          ),
+        ),
       ),
       const SizedBox(height: AppTheme.spacingMedium),
 
@@ -352,7 +428,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         value: _bloodGroup,
         decoration: InputDecoration(
           labelText: AppStrings.get('blood_group', lang),
-          prefixIcon: const Icon(Icons.bloodtype_outlined, color: AppTheme.primaryOrange, size: 22),
+          prefixIcon: const Icon(Icons.bloodtype_outlined,
+              color: AppTheme.primaryOrange, size: 22),
           filled: true,
           fillColor: isDark
               ? AppTheme.darkCard.withOpacity(0.7)
@@ -360,20 +437,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             borderSide: BorderSide(
-              color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+              color: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.1),
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             borderSide: BorderSide(
-              color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+              color: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.1),
             ),
           ),
         ),
         items: _bloodGroups.map((bg) {
           return DropdownMenuItem(
             value: bg,
-            child: Text(bg.isEmpty ? AppStrings.get('select_blood_group', lang) : bg),
+            child: Text(
+                bg.isEmpty ? AppStrings.get('select_blood_group', lang) : bg),
           );
         }).toList(),
         onChanged: (value) => setState(() => _bloodGroup = value ?? ''),
@@ -402,7 +484,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         value: _emergencyRelationship,
         decoration: InputDecoration(
           labelText: AppStrings.get('relationship', lang),
-          prefixIcon: const Icon(Icons.people_outlined, color: AppTheme.primaryOrange, size: 22),
+          prefixIcon: const Icon(Icons.people_outlined,
+              color: AppTheme.primaryOrange, size: 22),
           filled: true,
           fillColor: isDark
               ? AppTheme.darkCard.withOpacity(0.7)
@@ -410,23 +493,29 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             borderSide: BorderSide(
-              color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+              color: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.1),
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             borderSide: BorderSide(
-              color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+              color: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.1),
             ),
           ),
         ),
         items: _relationships.map((r) {
           return DropdownMenuItem(
             value: r,
-            child: Text(r.isEmpty ? AppStrings.get('select_relationship', lang) : r),
+            child: Text(
+                r.isEmpty ? AppStrings.get('select_relationship', lang) : r),
           );
         }).toList(),
-        onChanged: (value) => setState(() => _emergencyRelationship = value ?? ''),
+        onChanged: (value) =>
+            setState(() => _emergencyRelationship = value ?? ''),
       ),
     ];
   }
@@ -435,23 +524,24 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     return [
       _sectionTitle(AppStrings.get('professional_info', lang), isDark),
       const SizedBox(height: AppTheme.spacingMedium),
-
       AuthTextField(
         controller: _specializationController,
         label: AppStrings.get('specialization', lang),
         prefixIcon: Icons.medical_services_outlined,
-        validator: (v) => v == null || v.isEmpty ? AppStrings.get('specialization_required', lang) : null,
+        validator: (v) => v == null || v.isEmpty
+            ? AppStrings.get('specialization_required', lang)
+            : null,
       ),
       const SizedBox(height: AppTheme.spacingMedium),
-
       AuthTextField(
         controller: _licenseController,
         label: AppStrings.get('license_number', lang),
         prefixIcon: Icons.badge_outlined,
-        validator: (v) => v == null || v.isEmpty ? AppStrings.get('license_required', lang) : null,
+        validator: (v) => v == null || v.isEmpty
+            ? AppStrings.get('license_required', lang)
+            : null,
       ),
       const SizedBox(height: AppTheme.spacingMedium),
-
       AuthTextField(
         controller: _hospitalController,
         label: AppStrings.get('hospital_name', lang),
