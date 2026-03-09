@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:medicoscope/core/theme/app_theme.dart';
-import 'package:medicoscope/core/widgets/glass_card.dart';
 import 'package:medicoscope/core/widgets/theme_toggle_button.dart';
 import 'package:medicoscope/screens/upload/image_upload_screen.dart';
 import 'package:provider/provider.dart';
@@ -17,11 +16,13 @@ class MainSelectionScreen extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
     final lang = Provider.of<LocaleProvider>(context).languageCode;
-    
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: isDark ? AppTheme.darkBackgroundGradient : AppTheme.backgroundGradient,
+          gradient: isDark
+              ? AppTheme.darkBackgroundGradient
+              : AppTheme.backgroundGradient,
         ),
         child: SafeArea(
           child: CustomScrollView(
@@ -93,7 +94,8 @@ class MainSelectionScreen extends StatelessWidget {
                 // Add theme toggle button in actions
                 actions: [
                   Padding(
-                    padding: const EdgeInsets.only(right: AppTheme.spacingMedium),
+                    padding:
+                        const EdgeInsets.only(right: AppTheme.spacingMedium),
                     child: const ThemeToggleButton(size: 36),
                   ),
                 ],
@@ -167,7 +169,8 @@ class MainSelectionScreen extends StatelessWidget {
                       context,
                       icon: Icons.monitor_heart_outlined,
                       title: AppStrings.get('chest_xray', lang),
-                      description: AppStrings.get('chest_xray_analysis_desc', lang),
+                      description:
+                          AppStrings.get('chest_xray_analysis_desc', lang),
                       gradient: const LinearGradient(
                         colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
                       ),
@@ -181,7 +184,8 @@ class MainSelectionScreen extends StatelessWidget {
                       context,
                       icon: Icons.psychology_outlined,
                       title: AppStrings.get('brain_mri', lang),
-                      description: AppStrings.get('brain_mri_analysis_desc', lang),
+                      description:
+                          AppStrings.get('brain_mri_analysis_desc', lang),
                       gradient: const LinearGradient(
                         colors: [Color(0xFFF093FB), Color(0xFFF5576C)],
                       ),

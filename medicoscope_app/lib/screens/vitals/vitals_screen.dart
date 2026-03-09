@@ -29,7 +29,6 @@ class _VitalsScreenState extends State<VitalsScreen>
   double _latitude = 0.0;
   double _longitude = 0.0;
   String _locationName = 'Unknown';
-  bool _locationFetched = false;
   late AnimationController _pulseController;
   late AnimationController _graphAnimCtrl;
 
@@ -125,10 +124,10 @@ class _VitalsScreenState extends State<VitalsScreen>
           _locationName = parts.isNotEmpty ? parts.join(', ') : 'Unknown';
         }
       } catch (_) {
-        _locationName = '${_latitude.toStringAsFixed(4)}, ${_longitude.toStringAsFixed(4)}';
+        _locationName =
+            '${_latitude.toStringAsFixed(4)}, ${_longitude.toStringAsFixed(4)}';
       }
 
-      _locationFetched = true;
       if (mounted) setState(() {});
     } catch (_) {}
   }
@@ -564,8 +563,8 @@ class _VitalsScreenState extends State<VitalsScreen>
         Expanded(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingMedium),
+            padding:
+                const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
             child: Column(
               children: [
                 _buildGraphCard(
@@ -623,7 +622,8 @@ class _VitalsScreenState extends State<VitalsScreen>
                 // Stop button
                 GestureDetector(
                   onTap: () {
-                    final auth = Provider.of<AuthProvider>(context, listen: false);
+                    final auth =
+                        Provider.of<AuthProvider>(context, listen: false);
                     vitals.stopMonitoring(token: auth.token);
                   },
                   child: Container(
@@ -633,8 +633,8 @@ class _VitalsScreenState extends State<VitalsScreen>
                       color: Colors.redAccent.withOpacity(0.1),
                       borderRadius:
                           BorderRadius.circular(AppTheme.radiusMedium),
-                      border: Border.all(
-                          color: Colors.redAccent.withOpacity(0.3)),
+                      border:
+                          Border.all(color: Colors.redAccent.withOpacity(0.3)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -729,9 +729,8 @@ class _VitalsScreenState extends State<VitalsScreen>
     String lang = 'en',
   }) {
     // Rolling window: show only last 40 points so graph scrolls
-    final displayPoints = points.length > 40
-        ? points.sublist(points.length - 40)
-        : points;
+    final displayPoints =
+        points.length > 40 ? points.sublist(points.length - 40) : points;
 
     return GlassCard(
       padding: const EdgeInsets.all(14),
@@ -877,9 +876,7 @@ class _VitalsScreenState extends State<VitalsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
-            isCritical
-                ? Icons.emergency_rounded
-                : Icons.warning_amber_rounded,
+            isCritical ? Icons.emergency_rounded : Icons.warning_amber_rounded,
             color: alertColor,
             size: 20,
           ),
@@ -1002,8 +999,8 @@ class _VitalsGraphPainter extends CustomPainter {
       _drawLine(canvas, size, points, (p) => p.systolic, range, gradient);
       _drawLine(canvas, size, points, (p) => p.diastolic, range,
           [gradient[1].withOpacity(0.6), gradient[0].withOpacity(0.6)]);
-      _drawAreaFill(canvas, size, points, (p) => p.systolic,
-          (p) => p.diastolic, range, gradient);
+      _drawAreaFill(canvas, size, points, (p) => p.systolic, (p) => p.diastolic,
+          range, gradient);
     } else {
       _drawLine(canvas, size, points, extractor!, range, gradient);
       _drawAreaFillSingle(canvas, size, points, extractor!, range, gradient);
@@ -1103,8 +1100,7 @@ class _VitalsGraphPainter extends CustomPainter {
     canvas.drawCircle(
         Offset(lastX, lastY), 3.5 + pulse * 1.5, Paint()..color = colors[0]);
     // White center
-    canvas.drawCircle(
-        Offset(lastX, lastY), 1.5, Paint()..color = Colors.white);
+    canvas.drawCircle(Offset(lastX, lastY), 1.5, Paint()..color = Colors.white);
   }
 
   void _drawAreaFillSingle(

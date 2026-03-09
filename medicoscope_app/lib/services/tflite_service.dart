@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -13,11 +12,6 @@ class TFLiteService {
 
   // YOLOv8 input size (will be updated from model)
   int inputSize = 416;
-  
-  // Sigmoid activation function
-  double _sigmoid(double x) {
-    return 1.0 / (1.0 + math.exp(-x));
-  }
 
   Future<void> loadModel(String category) async {
     try {
@@ -30,11 +24,11 @@ class TFLiteService {
       // Load model
       _interpreter = await Interpreter.fromAsset(modelPath);
       _currentCategory = category;
-      
+
       // Get actual input size from model
       var inputTensor = _interpreter!.getInputTensor(0);
       var inputShape = inputTensor.shape;
-      
+
       // Update input size based on model (assuming square input)
       if (inputShape.length >= 3) {
         // For NHWC: [1, height, width, 3] or NCHW: [1, 3, height, width]
@@ -73,7 +67,7 @@ class TFLiteService {
       // Get input tensor shape from the model
       var inputTensor = _interpreter!.getInputTensor(0);
       var inputShape = inputTensor.shape;
-      
+
       print('Model input shape: $inputShape');
       print('Model input type: ${inputTensor.type}');
 
@@ -81,29 +75,28 @@ class TFLiteService {
       var input = _imageToByteListFloat32(resizedImage, inputShape);
 
       // Check if this is a classification model (eye) or object detection
-      bool isClassification = DiseaseDatabase.isClassificationModel(_currentCategory!);
+      bool isClassification =
+          DiseaseDatabase.isClassificationModel(_currentCategory!);
 
       // Get output tensor shape from the model
       var outputTensor = _interpreter!.getOutputTensor(0);
       var outputShape = outputTensor.shape;
-      
+
       print('Model output shape: $outputShape');
       print('Model output type: ${outputTensor.type}');
 
       if (isClassification) {
         // Classification model (eye)
         // Expected output shape: [1, num_classes]
-        final labels = DiseaseDatabase.getLabels(_currentCategory!);
-        
         // Use actual output shape from model
         int outputSize = outputShape.reduce((a, b) => a * b);
         var output = List.filled(outputSize, 0.0).reshape(outputShape);
-        
+
         print('Running classification inference with output size: $outputSize');
-        
+
         // Run inference
         _interpreter!.run(input, output);
-        
+
         // Process classification output
         return _processClassificationOutput(output);
       } else {
@@ -111,12 +104,13 @@ class TFLiteService {
         // Use actual output shape from model instead of hardcoded values
         int outputSize = outputShape.reduce((a, b) => a * b);
         var output = List.filled(outputSize, 0.0).reshape(outputShape);
-        
-        print('Running object detection inference with output shape: $outputShape');
-        
+
+        print(
+            'Running object detection inference with output shape: $outputShape');
+
         // Run inference
         _interpreter!.run(input, output);
-        
+
         // Process object detection output
         return _processOutput(output);
       }
@@ -129,25 +123,25 @@ class TFLiteService {
   Uint8List _imageToByteListFloat32(img.Image image, List<int> inputShape) {
     // Determine if input is NCHW [1, 3, 640, 640] or NHWC [1, 640, 640, 3]
     bool isNCHW = inputShape.length == 4 && inputShape[1] == 3;
-    
+
     var convertedBytes = Float32List(1 * inputSize * inputSize * 3);
     var buffer = Float32List.view(convertedBytes.buffer);
-    
+
     if (isNCHW) {
       // NCHW format: [1, 3, 640, 640]
       // Channels are separate: all R, then all G, then all B
       print('Using NCHW input format');
       int channelSize = inputSize * inputSize;
-      
+
       for (var i = 0; i < inputSize; i++) {
         for (var j = 0; j < inputSize; j++) {
           var pixel = image.getPixel(j, i);
           int pixelIndex = i * inputSize + j;
-          
+
           // Normalize to [0, 1]
-          buffer[pixelIndex] = pixel.r / 255.0;  // R channel
-          buffer[channelSize + pixelIndex] = pixel.g / 255.0;  // G channel
-          buffer[2 * channelSize + pixelIndex] = pixel.b / 255.0;  // B channel
+          buffer[pixelIndex] = pixel.r / 255.0; // R channel
+          buffer[channelSize + pixelIndex] = pixel.g / 255.0; // G channel
+          buffer[2 * channelSize + pixelIndex] = pixel.b / 255.0; // B channel
         }
       }
     } else {
@@ -155,11 +149,11 @@ class TFLiteService {
       // Channels are interleaved: RGB, RGB, RGB...
       print('Using NHWC input format');
       int pixelIndex = 0;
-      
+
       for (var i = 0; i < inputSize; i++) {
         for (var j = 0; j < inputSize; j++) {
           var pixel = image.getPixel(j, i);
-          
+
           // Normalize to [0, 1]
           buffer[pixelIndex++] = pixel.r / 255.0;
           buffer[pixelIndex++] = pixel.g / 255.0;
@@ -180,12 +174,11 @@ class TFLiteService {
     // Handle different YOLOv8 output formats
     // Format 1: [1, num_detections, num_classes + 5] - standard
     // Format 2: [1, num_classes + 5, num_detections] - transposed
-    
-    var outputShape = output[0].length;
+
     bool isTransposed = false;
     int numDetections = 0;
     int numClasses = labels.length;
-    
+
     // Check if output is transposed (like [1, 12, 3549])
     if (output[0].length < 100) {
       // Likely transposed: [1, num_classes + 5, num_detections]
@@ -210,31 +203,31 @@ class TFLiteService {
       double objectness;
       List<double> classProbs = [];
       int detectedClassIndex = 0;
-      
+
       if (isTransposed) {
         // Transposed format: [1, features, detections]
         // Index 4 is objectness, 5+ are class probabilities
         objectness = output[0][4][i];
-        
+
         for (int j = 5; j < output[0].length && (j - 5) < numClasses; j++) {
           classProbs.add(output[0][j][i]);
         }
       } else {
         // Standard format: [1, detections, features]
         var detection = output[0][i];
-        
+
         // Check if this is the new format: [x, y, w, h, confidence, class_id]
         if (detection.length == 6) {
           // New SSD/TFLite format
           objectness = detection[4]; // confidence
           detectedClassIndex = detection[5].round(); // class_id
-          
+
           // Debug: Show first 3 detections
           if (i < 3) {
             print('Detection $i: confidence=${objectness.toStringAsFixed(6)}, '
-                  'class_id=$detectedClassIndex, bbox=[${detection[0].toStringAsFixed(2)}, ${detection[1].toStringAsFixed(2)}, ${detection[2].toStringAsFixed(2)}, ${detection[3].toStringAsFixed(2)}]');
+                'class_id=$detectedClassIndex, bbox=[${detection[0].toStringAsFixed(2)}, ${detection[1].toStringAsFixed(2)}, ${detection[2].toStringAsFixed(2)}, ${detection[3].toStringAsFixed(2)}]');
           }
-          
+
           // For this format, we use confidence directly
           if (objectness > 0.1 && detectedClassIndex < labels.length) {
             topDetections.add({
@@ -243,7 +236,7 @@ class TFLiteService {
               'objectness': objectness,
               'classProb': 1.0,
             });
-            
+
             if (objectness > maxConfidence) {
               maxConfidence = objectness;
               maxClassIndex = detectedClassIndex;
@@ -257,35 +250,35 @@ class TFLiteService {
           }
           continue; // Skip the old processing logic
         }
-        
+
         // Old YOLO format
         objectness = detection[4];
-        
+
         for (int j = 5; j < detection.length && (j - 5) < numClasses; j++) {
           classProbs.add(detection[j]);
         }
       }
-      
+
       // Old YOLO format processing
       // Debug: Show first 3 detections
       if (i < 3 && classProbs.isNotEmpty) {
         print('Detection $i: objectness=${objectness.toStringAsFixed(6)}, '
-              'classProbs=[${classProbs.map((p) => p.toStringAsFixed(6)).join(", ")}]');
+            'classProbs=[${classProbs.map((p) => p.toStringAsFixed(6)).join(", ")}]');
       }
-      
+
       // Find class with highest probability
       double maxClassProb = 0.0;
       int classIndex = 0;
-      
+
       for (int j = 0; j < classProbs.length; j++) {
         if (classProbs[j] > maxClassProb) {
           maxClassProb = classProbs[j];
           classIndex = j;
         }
       }
-      
+
       double confidence = objectness * maxClassProb;
-      
+
       // Track for debugging
       if (confidence > 0.000001 && classIndex < labels.length) {
         topDetections.add({
@@ -295,7 +288,7 @@ class TFLiteService {
           'classProb': maxClassProb,
         });
       }
-      
+
       if (confidence > maxConfidence && classIndex < labels.length) {
         maxConfidence = confidence;
         maxClassIndex = classIndex;
@@ -317,20 +310,23 @@ class TFLiteService {
         }
       }
     }
-    
+
     // Sort and show top 5 detections
     topDetections.sort((a, b) => b['confidence'].compareTo(a['confidence']));
     print('Top 5 detections:');
     for (int i = 0; i < topDetections.length && i < 5; i++) {
       var det = topDetections[i];
-      print('  ${i+1}. ${det['class']}: ${(det['confidence'] * 100).toStringAsFixed(4)}% '
-            '(obj: ${(det['objectness'] * 100).toStringAsFixed(4)}%, '
-            'cls: ${(det['classProb'] * 100).toStringAsFixed(4)}%)');
+      print(
+          '  ${i + 1}. ${det['class']}: ${(det['confidence'] * 100).toStringAsFixed(4)}% '
+          '(obj: ${(det['objectness'] * 100).toStringAsFixed(4)}%, '
+          'cls: ${(det['classProb'] * 100).toStringAsFixed(4)}%)');
     }
 
     // Very low threshold to work with model's output range
-    if (maxConfidence < 0.0001) { // 0.01%
-      print('Max confidence ${(maxConfidence * 100).toStringAsFixed(6)}% below threshold');
+    if (maxConfidence < 0.0001) {
+      // 0.01%
+      print(
+          'Max confidence ${(maxConfidence * 100).toStringAsFixed(6)}% below threshold');
       return null;
     }
 

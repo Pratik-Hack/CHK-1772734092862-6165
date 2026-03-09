@@ -8,9 +8,6 @@ import 'package:medicoscope/core/providers/auth_provider.dart';
 import 'package:medicoscope/core/widgets/glass_card.dart';
 import 'package:medicoscope/services/cardio_service.dart';
 import 'package:medicoscope/services/detection_service.dart';
-import 'package:medicoscope/services/api_service.dart';
-import 'package:medicoscope/core/constants/api_constants.dart';
-import 'package:medicoscope/models/cardio_result.dart';
 import 'package:medicoscope/screens/heart/heart_results_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -69,7 +66,8 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
     if (!await _recorder.hasPermission()) return;
 
     final dir = await getTemporaryDirectory();
-    final path = '${dir.path}/heart_sound_${DateTime.now().millisecondsSinceEpoch}.wav';
+    final path =
+        '${dir.path}/heart_sound_${DateTime.now().millisecondsSinceEpoch}.wav';
 
     await _recorder.start(
       const RecordConfig(encoder: AudioEncoder.wav, numChannels: 1),
@@ -120,7 +118,8 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
   Future<void> _analyze() async {
     if (_selectedFilePath == null) return;
 
-    final lang = Provider.of<LocaleProvider>(context, listen: false).languageCode;
+    final lang =
+        Provider.of<LocaleProvider>(context, listen: false).languageCode;
     setState(() {
       _isProcessing = true;
       _statusMessage = AppStrings.get('uploading_heart_sound', lang);
@@ -159,7 +158,8 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
           className: result.prediction,
           confidence: result.avgHeartRate,
           category: 'heart_sound',
-          description: 'Heart sound analysis: ${result.prediction} (${result.severity}). '
+          description:
+              'Heart sound analysis: ${result.prediction} (${result.severity}). '
               'Avg HR: ${result.avgHeartRate.toStringAsFixed(1)} BPM. '
               '${result.recommendation}',
           patientId: widget.patientId,
@@ -173,7 +173,8 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 HeartResultsScreen(result: result),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return FadeTransition(
                 opacity: animation,
                 child: SlideTransition(
@@ -240,7 +241,8 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.arrow_back_ios),
-                      color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                      color:
+                          isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                     ),
                     Expanded(
                       child: Column(
@@ -251,14 +253,18 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                              color: isDark
+                                  ? AppTheme.darkTextLight
+                                  : AppTheme.textDark,
                             ),
                           ),
                           Text(
                             AppStrings.get('record_upload_heart', lang),
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                              color: isDark
+                                  ? AppTheme.darkTextGray
+                                  : AppTheme.textGray,
                             ),
                           ),
                         ],
@@ -294,10 +300,19 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: _isRecording
-                                  ? [const Color(0xFFFF5252), const Color(0xFFD32F2F)]
+                                  ? [
+                                      const Color(0xFFFF5252),
+                                      const Color(0xFFD32F2F)
+                                    ]
                                   : _isProcessing
-                                      ? [const Color(0xFF9E9E9E), const Color(0xFF757575)]
-                                      : [const Color(0xFFFF6B6B), const Color(0xFFEE5A24)],
+                                      ? [
+                                          const Color(0xFF9E9E9E),
+                                          const Color(0xFF757575)
+                                        ]
+                                      : [
+                                          const Color(0xFFFF6B6B),
+                                          const Color(0xFFEE5A24)
+                                        ],
                             ),
                             boxShadow: [
                               BoxShadow(
@@ -341,7 +356,9 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                          color: isDark
+                              ? AppTheme.darkTextLight
+                              : AppTheme.textDark,
                         ),
                       ).animate().fadeIn(duration: 400.ms),
 
@@ -353,14 +370,16 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                           style: TextStyle(
                             fontSize: 13,
                             fontStyle: FontStyle.italic,
-                            color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                            color: isDark
+                                ? AppTheme.darkTextGray
+                                : AppTheme.textGray,
                           ),
                         ).animate(onPlay: (c) => c.repeat()).shimmer(
-                          duration: 1500.ms,
-                          color: isDark
-                              ? Colors.white24
-                              : const Color(0xFFFF6B6B).withOpacity(0.3),
-                        )
+                              duration: 1500.ms,
+                              color: isDark
+                                  ? Colors.white24
+                                  : const Color(0xFFFF6B6B).withOpacity(0.3),
+                            )
                       else
                         Text(
                           _isRecording
@@ -368,7 +387,9 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                               : AppStrings.get('record_or_upload', lang),
                           style: TextStyle(
                             fontSize: 13,
-                            color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                            color: isDark
+                                ? AppTheme.darkTextGray
+                                : AppTheme.textGray,
                           ),
                         ),
 
@@ -380,7 +401,9 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.w300,
-                            color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                            color: isDark
+                                ? AppTheme.darkTextLight
+                                : AppTheme.textDark,
                           ),
                         ).animate().fadeIn(),
                       ],
@@ -397,7 +420,8 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                           child: GestureDetector(
                             onTap: _startRecording,
                             child: GlassCard(
-                              padding: const EdgeInsets.all(AppTheme.spacingMedium),
+                              padding:
+                                  const EdgeInsets.all(AppTheme.spacingMedium),
                               child: Row(
                                 children: [
                                   Container(
@@ -405,30 +429,40 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                                     height: 48,
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFFFF6B6B), Color(0xFFEE5A24)],
+                                        colors: [
+                                          Color(0xFFFF6B6B),
+                                          Color(0xFFEE5A24)
+                                        ],
                                       ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: const Icon(Icons.mic_rounded, color: Colors.white, size: 26),
+                                    child: const Icon(Icons.mic_rounded,
+                                        color: Colors.white, size: 26),
                                   ),
                                   const SizedBox(width: AppTheme.spacingMedium),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          AppStrings.get('record_heart_sound', lang),
+                                          AppStrings.get(
+                                              'record_heart_sound', lang),
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
-                                            color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                                            color: isDark
+                                                ? AppTheme.darkTextLight
+                                                : AppTheme.textDark,
                                           ),
                                         ),
                                         Text(
                                           AppStrings.get('use_phone_mic', lang),
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                                            color: isDark
+                                                ? AppTheme.darkTextGray
+                                                : AppTheme.textGray,
                                           ),
                                         ),
                                       ],
@@ -437,13 +471,18 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                                   Icon(
                                     Icons.arrow_forward_ios,
                                     size: 16,
-                                    color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                                    color: isDark
+                                        ? AppTheme.darkTextDim
+                                        : AppTheme.textLight,
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                        ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1, end: 0),
+                        )
+                            .animate()
+                            .fadeIn(delay: 200.ms, duration: 400.ms)
+                            .slideY(begin: 0.1, end: 0),
 
                         const SizedBox(height: AppTheme.spacingMedium),
 
@@ -453,7 +492,8 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                           child: GestureDetector(
                             onTap: _pickFile,
                             child: GlassCard(
-                              padding: const EdgeInsets.all(AppTheme.spacingMedium),
+                              padding:
+                                  const EdgeInsets.all(AppTheme.spacingMedium),
                               child: Row(
                                 children: [
                                   Container(
@@ -461,30 +501,41 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                                     height: 48,
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                                        colors: [
+                                          Color(0xFF667EEA),
+                                          Color(0xFF764BA2)
+                                        ],
                                       ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: const Icon(Icons.audio_file_rounded, color: Colors.white, size: 26),
+                                    child: const Icon(Icons.audio_file_rounded,
+                                        color: Colors.white, size: 26),
                                   ),
                                   const SizedBox(width: AppTheme.spacingMedium),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          AppStrings.get('pick_audio_file', lang),
+                                          AppStrings.get(
+                                              'pick_audio_file', lang),
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
-                                            color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                                            color: isDark
+                                                ? AppTheme.darkTextLight
+                                                : AppTheme.textDark,
                                           ),
                                         ),
                                         Text(
-                                          AppStrings.get('select_audio_formats', lang),
+                                          AppStrings.get(
+                                              'select_audio_formats', lang),
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                                            color: isDark
+                                                ? AppTheme.darkTextGray
+                                                : AppTheme.textGray,
                                           ),
                                         ),
                                       ],
@@ -493,13 +544,18 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                                   Icon(
                                     Icons.arrow_forward_ios,
                                     size: 16,
-                                    color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                                    color: isDark
+                                        ? AppTheme.darkTextDim
+                                        : AppTheme.textLight,
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                        ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideY(begin: 0.1, end: 0),
+                        )
+                            .animate()
+                            .fadeIn(delay: 300.ms, duration: 400.ms)
+                            .slideY(begin: 0.1, end: 0),
                       ],
 
                       // Recording stop button
@@ -507,7 +563,8 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                         GestureDetector(
                           onTap: _stopRecording,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 32, vertical: 14),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [Color(0xFFFF5252), Color(0xFFD32F2F)],
@@ -515,7 +572,8 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFFF5252).withOpacity(0.4),
+                                  color:
+                                      const Color(0xFFFF5252).withOpacity(0.4),
                                   blurRadius: 15,
                                 ),
                               ],
@@ -523,7 +581,8 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.stop_rounded, color: Colors.white, size: 24),
+                                const Icon(Icons.stop_rounded,
+                                    color: Colors.white, size: 24),
                                 const SizedBox(width: 8),
                                 Text(
                                   AppStrings.get('stop_recording', lang),
@@ -536,12 +595,17 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                               ],
                             ),
                           ),
-                        ).animate().fadeIn().scale(begin: const Offset(0.8, 0.8)),
+                        )
+                            .animate()
+                            .fadeIn()
+                            .scale(begin: const Offset(0.8, 0.8)),
 
                       const SizedBox(height: AppTheme.spacingLarge),
 
                       // Selected file indicator
-                      if (_selectedFileName != null && !_isRecording && !_isProcessing)
+                      if (_selectedFileName != null &&
+                          !_isRecording &&
+                          !_isProcessing)
                         GlassCard(
                           padding: const EdgeInsets.all(AppTheme.spacingMedium),
                           child: Column(
@@ -560,7 +624,9 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                                        color: isDark
+                                            ? AppTheme.darkTextLight
+                                            : AppTheme.textDark,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -569,7 +635,9 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                                     icon: Icon(
                                       Icons.close,
                                       size: 18,
-                                      color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                                      color: isDark
+                                          ? AppTheme.darkTextDim
+                                          : AppTheme.textLight,
                                     ),
                                     onPressed: () => setState(() {
                                       _selectedFilePath = null;
@@ -584,22 +652,28 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                                 child: GestureDetector(
                                   onTap: _analyze,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFFFF6B6B), Color(0xFFEE5A24)],
+                                        colors: [
+                                          Color(0xFFFF6B6B),
+                                          Color(0xFFEE5A24)
+                                        ],
                                       ),
                                       borderRadius: BorderRadius.circular(14),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFFFF6B6B).withOpacity(0.3),
+                                          color: const Color(0xFFFF6B6B)
+                                              .withOpacity(0.3),
                                           blurRadius: 12,
                                         ),
                                       ],
                                     ),
                                     child: Center(
                                       child: Text(
-                                        AppStrings.get('analyze_heart_sound', lang),
+                                        AppStrings.get(
+                                            'analyze_heart_sound', lang),
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w700,
@@ -612,7 +686,10 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
                               ),
                             ],
                           ),
-                        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                        )
+                            .animate()
+                            .fadeIn(duration: 400.ms)
+                            .slideY(begin: 0.1, end: 0),
 
                       const SizedBox(height: 40),
                     ],
