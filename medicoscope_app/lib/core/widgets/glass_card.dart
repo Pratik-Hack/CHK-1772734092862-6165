@@ -14,7 +14,7 @@ class GlassCard extends StatelessWidget {
   final Border? border;
 
   const GlassCard({
-    Key? key,
+    super.key,
     required this.child,
     this.width,
     this.height,
@@ -24,7 +24,7 @@ class GlassCard extends StatelessWidget {
     this.blur = 10.0,
     this.color,
     this.border,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -14,7 +14,7 @@ class AnimatedButton extends StatefulWidget {
   final bool isOutlined;
 
   const AnimatedButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.icon,
@@ -24,7 +24,7 @@ class AnimatedButton extends StatefulWidget {
     this.textColor,
     this.borderRadius = AppTheme.radiusLarge,
     this.isOutlined = false,
-  }) : super(key: key);
+  });
 
   @override
   State<AnimatedButton> createState() => _AnimatedButtonState();

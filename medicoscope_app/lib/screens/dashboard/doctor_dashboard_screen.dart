@@ -18,7 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
 
 class DoctorDashboardScreen extends StatefulWidget {
-  const DoctorDashboardScreen({Key? key}) : super(key: key);
+  const DoctorDashboardScreen({super.key});
 
   @override
   State<DoctorDashboardScreen> createState() => _DoctorDashboardScreenState();

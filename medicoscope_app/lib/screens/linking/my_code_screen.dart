@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
 
 class MyCodeScreen extends StatelessWidget {
-  const MyCodeScreen({Key? key}) : super(key: key);
+  const MyCodeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

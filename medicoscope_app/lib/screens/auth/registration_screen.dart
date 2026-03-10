@@ -16,7 +16,7 @@ import 'package:medicoscope/core/theme/theme_provider.dart';
 class RegistrationScreen extends StatefulWidget {
   final String role;
 
-  const RegistrationScreen({Key? key, required this.role}) : super(key: key);
+  const RegistrationScreen({super.key, required this.role});
 
   @override
   State<RegistrationScreen> createState() => _RegistrationScreenState();
@@ -264,10 +264,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           prefixIcon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                           validator: (v) {
-                            if (v == null || v.isEmpty)
+                            if (v == null || v.isEmpty) {
                               return AppStrings.get('email_required', lang);
-                            if (!v.contains('@'))
+                            }
+                            if (!v.contains('@')) {
                               return AppStrings.get('email_invalid', lang);
+                            }
                             return null;
                           },
                         ),
@@ -298,10 +300,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 () => _obscurePassword = !_obscurePassword),
                           ),
                           validator: (v) {
-                            if (v == null || v.isEmpty)
+                            if (v == null || v.isEmpty) {
                               return AppStrings.get('password_required', lang);
-                            if (v.length < 6)
+                            }
+                            if (v.length < 6) {
                               return AppStrings.get('min_6_chars', lang);
+                            }
                             return null;
                           },
                         ),
@@ -324,8 +328,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 () => _obscureConfirm = !_obscureConfirm),
                           ),
                           validator: (v) {
-                            if (v != _passwordController.text)
+                            if (v != _passwordController.text) {
                               return AppStrings.get('passwords_mismatch', lang);
+                            }
                             return null;
                           },
                         ),
@@ -425,7 +430,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       // Blood Group dropdown
       DropdownButtonFormField<String>(
-        value: _bloodGroup,
+        initialValue: _bloodGroup,
         decoration: InputDecoration(
           labelText: AppStrings.get('blood_group', lang),
           prefixIcon: const Icon(Icons.bloodtype_outlined,
@@ -481,7 +486,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       const SizedBox(height: AppTheme.spacingMedium),
 
       DropdownButtonFormField<String>(
-        value: _emergencyRelationship,
+        initialValue: _emergencyRelationship,
         decoration: InputDecoration(
           labelText: AppStrings.get('relationship', lang),
           prefixIcon: const Icon(Icons.people_outlined,

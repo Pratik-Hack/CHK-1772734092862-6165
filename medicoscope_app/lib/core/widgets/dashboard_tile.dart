@@ -12,7 +12,7 @@ class DashboardTile extends StatelessWidget {
   final bool isPlaceholder;
 
   const DashboardTile({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     required this.description,
@@ -20,7 +20,7 @@ class DashboardTile extends StatelessWidget {
     required this.onTap,
     this.animationDelay = 0,
     this.isPlaceholder = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -46,7 +46,7 @@ void main() {
 }
 
 class MedicoScopeApp extends StatelessWidget {
-  const MedicoScopeApp({Key? key}) : super(key: key);
+  const MedicoScopeApp({super.key});
 
   @override
   Widget build(BuildContext context) {

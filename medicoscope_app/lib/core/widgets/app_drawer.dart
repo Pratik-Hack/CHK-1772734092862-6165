@@ -15,7 +15,7 @@ import 'package:medicoscope/screens/welcome/welcome_screen.dart';
 import 'package:provider/provider.dart';
 
 class AppDrawer extends StatelessWidget {
-  const AppDrawer({Key? key}) : super(key: key);
+  const AppDrawer({super.key});
 
   void _navigateTo(BuildContext context, Widget screen) {
     Navigator.of(context).pop(); // Close drawer

@@ -3,7 +3,8 @@ class AppStrings {
     return _strings[langCode]?[key] ?? _strings['en']?[key] ?? key;
   }
 
-  static String format(String key, String langCode, Map<String, String> params) {
+  static String format(
+      String key, String langCode, Map<String, String> params) {
     var text = get(key, langCode);
     params.forEach((k, v) => text = text.replaceAll('{$k}', v));
     return text;
@@ -19,30 +20,38 @@ class AppStrings {
       'next': 'Next',
       'get_started': 'Get Started',
       'onboarding_title_1': 'AI-Powered Diagnosis',
-      'onboarding_desc_1': 'Upload medical images and get instant AI-powered analysis for skin conditions, chest X-rays, and brain MRI scans.',
+      'onboarding_desc_1':
+          'Upload medical images and get instant AI-powered analysis for skin conditions, chest X-rays, and brain MRI scans.',
       'onboarding_title_2': 'Capture or Upload',
-      'onboarding_desc_2': 'Take a photo directly or upload from your gallery. Our advanced AI will analyze the image in seconds.',
+      'onboarding_desc_2':
+          'Take a photo directly or upload from your gallery. Our advanced AI will analyze the image in seconds.',
       'onboarding_title_3': '3D Visualization',
-      'onboarding_desc_3': 'Explore interactive 3D models of detected conditions. Rotate, zoom, and view in augmented reality.',
+      'onboarding_desc_3':
+          'Explore interactive 3D models of detected conditions. Rotate, zoom, and view in augmented reality.',
       'onboarding_title_4': 'First Aid & Assistance',
-      'onboarding_desc_4': 'Get detailed information about detected conditions. A helpful tool for both patients and medical professionals.',
+      'onboarding_desc_4':
+          'Get detailed information about detected conditions. A helpful tool for both patients and medical professionals.',
 
       // Welcome
       'medicoscope': 'MedicoScope',
       'tagline': 'AI-Powered Medical Imaging',
       'first_aid_patients': 'First Aid for Patients',
-      'first_aid_patients_desc': 'Get instant AI-powered analysis of medical images. Upload skin photos, chest X-rays, or brain MRI scans for quick insights.',
+      'first_aid_patients_desc':
+          'Get instant AI-powered analysis of medical images. Upload skin photos, chest X-rays, or brain MRI scans for quick insights.',
       'doctor_assistant': 'Assistive Tool for Doctors',
-      'doctor_assistant_desc': 'A powerful diagnostic assistant providing detailed 3D visualizations and comprehensive disease information to support medical professionals.',
+      'doctor_assistant_desc':
+          'A powerful diagnostic assistant providing detailed 3D visualizations and comprehensive disease information to support medical professionals.',
       'swipe_up': 'Swipe up to explore',
       'enter_medicoscope': 'Enter MedicoScope',
 
       // Role Selection
       'who_are_you': 'Who are you?',
       'im_patient': "I'm a Patient",
-      'im_patient_desc': 'Track your health, scan skin conditions, connect with your doctor',
+      'im_patient_desc':
+          'Track your health, scan skin conditions, connect with your doctor',
       'im_doctor': "I'm a Doctor",
-      'im_doctor_desc': 'Manage patients, analyze X-rays & MRI scans, send reports',
+      'im_doctor_desc':
+          'Manage patients, analyze X-rays & MRI scans, send reports',
       'already_have_account': 'Already have an account? ',
       'log_in': 'Log in',
 
@@ -134,9 +143,12 @@ class AppStrings {
       'online': 'Online',
       'ask_about_health': 'Ask about your health...',
       'describe_symptoms': 'Describe your symptoms...',
-      'chatbot_greeting': "Hello! I'm your MedicoScope medical assistant. I can help you understand your symptoms, provide general health guidance, and advise when to see a doctor. How can I help you today?",
-      'chatbot_greeting_context': "Hello! I'm your MedicoScope medical assistant. I have access to your recent scans, vitals, and health data. How can I help you today?",
-      'chatbot_warming_up': 'The chatbot is warming up. Please try again in a moment.',
+      'chatbot_greeting':
+          "Hello! I'm your MedicoScope medical assistant. I can help you understand your symptoms, provide general health guidance, and advise when to see a doctor. How can I help you today?",
+      'chatbot_greeting_context':
+          "Hello! I'm your MedicoScope medical assistant. I have access to your recent scans, vitals, and health data. How can I help you today?",
+      'chatbot_warming_up':
+          'The chatbot is warming up. Please try again in a moment.',
       'request_timed_out': 'The request timed out. Please try again.',
       'chatbot_error': 'Sorry, I encountered an error. Please try again.',
 
@@ -149,7 +161,8 @@ class AppStrings {
       'user': 'User',
 
       // Link Doctor
-      'link_doctor_desc': "Enter your doctor's unique code to connect your accounts",
+      'link_doctor_desc':
+          "Enter your doctor's unique code to connect your accounts",
       'currently_linked': 'Currently Linked',
       'doctor_code': 'Doctor Code',
       'doctor_code_hint': 'e.g., MS-7A3F',
@@ -168,7 +181,8 @@ class AppStrings {
 
       // Main Selection
       'select_analysis_type': 'Select Analysis Type',
-      'select_analysis_desc': 'Choose the type of medical image you want to analyze',
+      'select_analysis_desc':
+          'Choose the type of medical image you want to analyze',
       'skin_dermascopy': 'Skin / Dermascopy',
       'skin_analysis_desc': 'Analyze skin lesions and conditions',
       'chest_xray_analysis_desc': 'Detect chest and lung abnormalities',
@@ -179,7 +193,8 @@ class AppStrings {
       'live_monitoring_active': 'Live monitoring active',
       'real_time_health': 'Real-time health tracking',
       'real_time_vitals': 'Real-Time Vitals Monitoring',
-      'vitals_full_desc': 'Monitor heart rate, blood pressure, and SpO2 with live animated graphs. AI-powered anomaly detection sends preventive alerts before issues occur.',
+      'vitals_full_desc':
+          'Monitor heart rate, blood pressure, and SpO2 with live animated graphs. AI-powered anomaly detection sends preventive alerts before issues occur.',
       'heart_rate': 'Heart Rate',
       'blood_pressure': 'Blood Pressure',
       'spo2': 'SpO2',
@@ -242,8 +257,10 @@ class AppStrings {
       'generating_reward': 'Generating your {title}...',
       'personalized_for_you': 'Personalized for you',
       'your_mental_health_matters': 'Your mental health matters',
-      'keep_sharing_growing': 'Every check-in is a step toward a healthier you.\nKeep sharing, keep growing.',
-      'ai_disclaimer_reward': 'Generated by AI based on your wellness profile. For informational purposes — not a substitute for professional medical advice.',
+      'keep_sharing_growing':
+          'Every check-in is a step toward a healthier you.\nKeep sharing, keep growing.',
+      'ai_disclaimer_reward':
+          'Generated by AI based on your wellness profile. For informational purposes — not a substitute for professional medical advice.',
 
       // Image Upload
       'no_image_selected': 'No image selected',
@@ -252,7 +269,8 @@ class AppStrings {
       'upload_gallery': 'Upload from Gallery',
       'analyze_image': 'Analyze Image',
       'analyzing_image': 'Analyzing...',
-      'no_condition_detected': 'No condition detected. Please try another image.',
+      'no_condition_detected':
+          'No condition detected. Please try another image.',
       'medical_image': 'Medical Image',
 
       // Detection Results
@@ -262,7 +280,8 @@ class AppStrings {
       'description': 'Description',
       '3d_visualization': '3D Visualization',
       'rotate_zoom': 'Rotate, zoom, and explore the 3D model',
-      'ai_disclaimer': 'This is an AI-powered analysis. Please consult a healthcare professional for accurate diagnosis.',
+      'ai_disclaimer':
+          'This is an AI-powered analysis. Please consult a healthcare professional for accurate diagnosis.',
 
       // Heart Monitoring
       'record_upload_heart': 'Record or upload heart sound for analysis',
@@ -321,6 +340,17 @@ class AppStrings {
       'doctor_notified': 'Doctor notified',
       'emergency_notified': 'Emergency contact notified',
 
+      // Delete
+      'delete': 'Delete',
+      'delete_alert': 'Delete Alert',
+      'delete_alert_confirm': 'Are you sure you want to delete this alert?',
+      'cancel': 'Cancel',
+      'alert_deleted': 'Alert deleted',
+
+      // Patient Detail - Alerts
+      'vitals_alerts': 'Vitals Alerts',
+      'no_vitals_alerts_patient': 'No vitals alerts for this patient',
+
       // Reports
       'patient_reports': 'Patient Reports',
       'detection_records_subtitle': 'Detection records from linked patients',
@@ -354,25 +384,35 @@ class AppStrings {
       'neurology': 'Neurology',
       'cardiology': 'Cardiology',
       'no_description': 'No clinical description available.',
-      'rec_dermatology_appointment': 'Schedule a dermatology appointment for clinical evaluation',
-      'rec_urgent_dermatology': 'URGENT: Seek immediate dermatological consultation',
+      'rec_dermatology_appointment':
+          'Schedule a dermatology appointment for clinical evaluation',
+      'rec_urgent_dermatology':
+          'URGENT: Seek immediate dermatological consultation',
       'rec_biopsy': 'Biopsy may be required for definitive diagnosis',
       'rec_sun_exposure': 'Avoid excessive sun exposure to the affected area',
       'rec_monitor_changes': 'Monitor for changes in size, shape, or color',
       'rec_document_lesion': 'Document the lesion with regular photographs',
-      'rec_pulmonologist': 'Follow up with a pulmonologist for further evaluation',
+      'rec_pulmonologist':
+          'Follow up with a pulmonologist for further evaluation',
       'rec_urgent_medical': 'URGENT: Immediate medical attention recommended',
-      'rec_additional_imaging': 'Additional imaging studies (CT scan) may be needed',
-      'rec_monitor_respiratory': 'Monitor respiratory symptoms (cough, shortness of breath)',
+      'rec_additional_imaging':
+          'Additional imaging studies (CT scan) may be needed',
+      'rec_monitor_respiratory':
+          'Monitor respiratory symptoms (cough, shortness of breath)',
       'rec_avoid_smoking': 'Avoid smoking and pollutant exposure',
-      'rec_urgent_neurology': 'URGENT: Schedule a neurology consultation immediately',
+      'rec_urgent_neurology':
+          'URGENT: Schedule a neurology consultation immediately',
       'rec_mri_followup': 'MRI follow-up with contrast is recommended',
-      'rec_monitor_neurological': 'Monitor for neurological symptoms (headaches, vision changes, seizures)',
+      'rec_monitor_neurological':
+          'Monitor for neurological symptoms (headaches, vision changes, seizures)',
       'rec_symptom_diary': 'Keep a symptom diary for the neurologist',
-      'rec_cardiologist': 'Follow up with a cardiologist for clinical assessment',
-      'rec_urgent_cardiology': 'URGENT: Priority cardiology referral recommended',
+      'rec_cardiologist':
+          'Follow up with a cardiologist for clinical assessment',
+      'rec_urgent_cardiology':
+          'URGENT: Priority cardiology referral recommended',
       'rec_echocardiogram': 'Echocardiogram recommended for valve assessment',
-      'rec_monitor_cardiac': 'Monitor for symptoms (chest pain, palpitations, dizziness)',
+      'rec_monitor_cardiac':
+          'Monitor for symptoms (chest pain, palpitations, dizziness)',
       'rec_avoid_strenuous': 'Avoid strenuous physical activity until cleared',
 
       // Patient Alerts
@@ -382,7 +422,8 @@ class AppStrings {
       'critical': 'Critical',
       'sent_to_doctor': 'Sent to Dr.',
       'no_alerts_yet': 'No alerts yet',
-      'alerts_appear_here': 'Vitals alerts from monitoring sessions\nwill appear here',
+      'alerts_appear_here':
+          'Vitals alerts from monitoring sessions\nwill appear here',
       'current_value': 'Current Value',
       'predicted_value': 'Predicted Value',
       'alert_sent_to': 'Alert Sent To',
@@ -399,26 +440,34 @@ class AppStrings {
       'next': 'आगे',
       'get_started': 'शुरू करें',
       'onboarding_title_1': 'AI-संचालित निदान',
-      'onboarding_desc_1': 'मेडिकल इमेज अपलोड करें और त्वचा, छाती एक्स-रे और ब्रेन MRI स्कैन के लिए तुरंत AI विश्लेषण प्राप्त करें।',
+      'onboarding_desc_1':
+          'मेडिकल इमेज अपलोड करें और त्वचा, छाती एक्स-रे और ब्रेन MRI स्कैन के लिए तुरंत AI विश्लेषण प्राप्त करें।',
       'onboarding_title_2': 'कैप्चर या अपलोड करें',
-      'onboarding_desc_2': 'सीधे फोटो लें या गैलरी से अपलोड करें। हमारी AI सेकंडों में इमेज का विश्लेषण करेगी।',
+      'onboarding_desc_2':
+          'सीधे फोटो लें या गैलरी से अपलोड करें। हमारी AI सेकंडों में इमेज का विश्लेषण करेगी।',
       'onboarding_title_3': '3D विज़ुअलाइज़ेशन',
-      'onboarding_desc_3': 'पहचानी गई स्थितियों के इंटरैक्टिव 3D मॉडल देखें। घुमाएँ, ज़ूम करें और AR में देखें।',
+      'onboarding_desc_3':
+          'पहचानी गई स्थितियों के इंटरैक्टिव 3D मॉडल देखें। घुमाएँ, ज़ूम करें और AR में देखें।',
       'onboarding_title_4': 'प्राथमिक चिकित्सा और सहायता',
-      'onboarding_desc_4': 'पहचानी गई स्थितियों की विस्तृत जानकारी प्राप्त करें। रोगियों और डॉक्टरों दोनों के लिए उपयोगी।',
+      'onboarding_desc_4':
+          'पहचानी गई स्थितियों की विस्तृत जानकारी प्राप्त करें। रोगियों और डॉक्टरों दोनों के लिए उपयोगी।',
       'medicoscope': 'MedicoScope',
       'tagline': 'AI-संचालित मेडिकल इमेजिंग',
       'first_aid_patients': 'रोगियों के लिए प्राथमिक चिकित्सा',
-      'first_aid_patients_desc': 'मेडिकल इमेज का तुरंत AI विश्लेषण प्राप्त करें। त्वचा फोटो, छाती एक्स-रे या ब्रेन MRI स्कैन अपलोड करें।',
+      'first_aid_patients_desc':
+          'मेडिकल इमेज का तुरंत AI विश्लेषण प्राप्त करें। त्वचा फोटो, छाती एक्स-रे या ब्रेन MRI स्कैन अपलोड करें।',
       'doctor_assistant': 'डॉक्टरों के लिए सहायक उपकरण',
-      'doctor_assistant_desc': 'विस्तृत 3D विज़ुअलाइज़ेशन और व्यापक रोग जानकारी प्रदान करने वाला शक्तिशाली नैदानिक सहायक।',
+      'doctor_assistant_desc':
+          'विस्तृत 3D विज़ुअलाइज़ेशन और व्यापक रोग जानकारी प्रदान करने वाला शक्तिशाली नैदानिक सहायक।',
       'swipe_up': 'खोजने के लिए ऊपर स्वाइप करें',
       'enter_medicoscope': 'MedicoScope में प्रवेश करें',
       'who_are_you': 'आप कौन हैं?',
       'im_patient': 'मैं मरीज़ हूँ',
-      'im_patient_desc': 'अपनी सेहत ट्रैक करें, त्वचा स्कैन करें, डॉक्टर से जुड़ें',
+      'im_patient_desc':
+          'अपनी सेहत ट्रैक करें, त्वचा स्कैन करें, डॉक्टर से जुड़ें',
       'im_doctor': 'मैं डॉक्टर हूँ',
-      'im_doctor_desc': 'मरीज़ों को प्रबंधित करें, एक्स-रे और MRI स्कैन का विश्लेषण करें',
+      'im_doctor_desc':
+          'मरीज़ों को प्रबंधित करें, एक्स-रे और MRI स्कैन का विश्लेषण करें',
       'already_have_account': 'पहले से खाता है? ',
       'log_in': 'लॉग इन करें',
       'welcome_back': 'वापसी पर स्वागत है',
@@ -480,7 +529,8 @@ class AppStrings {
       'mind_space': 'माइंड स्पेस',
       'mind_space_desc': 'अपना दिन साझा करें, सिक्के कमाएँ',
       'heart_monitoring': 'हृदय निगरानी',
-      'heart_monitoring_desc': 'हृदय ध्वनि से कार्डियक स्थितियों का विश्लेषण करें',
+      'heart_monitoring_desc':
+          'हृदय ध्वनि से कार्डियक स्थितियों का विश्लेषण करें',
       'alerts': 'अलर्ट',
       'alerts_desc': 'आपके और डॉक्टर को भेजे गए वाइटल अलर्ट देखें',
       'dr_name': 'डॉ. {name}',
@@ -500,10 +550,14 @@ class AppStrings {
       'online': 'ऑनलाइन',
       'ask_about_health': 'अपने स्वास्थ्य के बारे में पूछें...',
       'describe_symptoms': 'अपने लक्षण बताएँ...',
-      'chatbot_greeting': 'नमस्ते! मैं आपका MedicoScope मेडिकल सहायक हूँ। मैं आपके लक्षणों को समझने, सामान्य स्वास्थ्य मार्गदर्शन देने और डॉक्टर से कब मिलना चाहिए यह बताने में मदद कर सकता हूँ।',
-      'chatbot_greeting_context': 'नमस्ते! मैं आपका MedicoScope मेडिकल सहायक हूँ। मेरे पास आपके हालिया स्कैन, वाइटल्स और स्वास्थ्य डेटा की पहुँच है। मैं कैसे मदद कर सकता हूँ?',
-      'chatbot_warming_up': 'चैटबॉट शुरू हो रहा है। कृपया एक पल बाद पुनः प्रयास करें।',
-      'request_timed_out': 'अनुरोध का समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
+      'chatbot_greeting':
+          'नमस्ते! मैं आपका MedicoScope मेडिकल सहायक हूँ। मैं आपके लक्षणों को समझने, सामान्य स्वास्थ्य मार्गदर्शन देने और डॉक्टर से कब मिलना चाहिए यह बताने में मदद कर सकता हूँ।',
+      'chatbot_greeting_context':
+          'नमस्ते! मैं आपका MedicoScope मेडिकल सहायक हूँ। मेरे पास आपके हालिया स्कैन, वाइटल्स और स्वास्थ्य डेटा की पहुँच है। मैं कैसे मदद कर सकता हूँ?',
+      'chatbot_warming_up':
+          'चैटबॉट शुरू हो रहा है। कृपया एक पल बाद पुनः प्रयास करें।',
+      'request_timed_out':
+          'अनुरोध का समय समाप्त हो गया। कृपया पुनः प्रयास करें।',
       'chatbot_error': 'क्षमा करें, एक त्रुटि हुई। कृपया पुनः प्रयास करें।',
       'phone': 'फ़ोन',
       'not_provided': 'उपलब्ध नहीं',
@@ -526,16 +580,19 @@ class AppStrings {
       'code_copied': 'कोड क्लिपबोर्ड पर कॉपी हो गया',
       'na': 'N/A',
       'select_analysis_type': 'विश्लेषण प्रकार चुनें',
-      'select_analysis_desc': 'विश्लेषण करने के लिए मेडिकल इमेज का प्रकार चुनें',
+      'select_analysis_desc':
+          'विश्लेषण करने के लिए मेडिकल इमेज का प्रकार चुनें',
       'skin_dermascopy': 'त्वचा / डर्मोस्कोपी',
       'skin_analysis_desc': 'त्वचा घावों और स्थितियों का विश्लेषण करें',
       'chest_xray_analysis_desc': 'छाती और फेफड़ों की असामान्यताएँ पहचानें',
-      'brain_mri_analysis_desc': 'असामान्यताओं के लिए ब्रेन स्कैन का विश्लेषण करें',
+      'brain_mri_analysis_desc':
+          'असामान्यताओं के लिए ब्रेन स्कैन का विश्लेषण करें',
       'vitals_monitor': 'वाइटल्स मॉनिटर',
       'live_monitoring_active': 'लाइव निगरानी सक्रिय',
       'real_time_health': 'रीयल-टाइम स्वास्थ्य ट्रैकिंग',
       'real_time_vitals': 'रीयल-टाइम वाइटल्स निगरानी',
-      'vitals_full_desc': 'लाइव एनिमेटेड ग्राफ़ से हृदय गति, रक्तचाप और SpO2 की निगरानी करें। AI-संचालित विसंगति पहचान समस्या होने से पहले अलर्ट भेजती है।',
+      'vitals_full_desc':
+          'लाइव एनिमेटेड ग्राफ़ से हृदय गति, रक्तचाप और SpO2 की निगरानी करें। AI-संचालित विसंगति पहचान समस्या होने से पहले अलर्ट भेजती है।',
       'heart_rate': 'हृदय गति',
       'blood_pressure': 'रक्तचाप',
       'spo2': 'SpO2',
@@ -594,15 +651,18 @@ class AppStrings {
       'generating_reward': 'आपका {title} बन रहा है...',
       'personalized_for_you': 'आपके लिए व्यक्तिगत',
       'your_mental_health_matters': 'आपका मानसिक स्वास्थ्य महत्वपूर्ण है',
-      'keep_sharing_growing': 'हर चेक-इन स्वस्थ जीवन की ओर एक कदम है।\nसाझा करते रहें, बढ़ते रहें।',
-      'ai_disclaimer_reward': 'AI द्वारा आपकी वेलनेस प्रोफ़ाइल के आधार पर उत्पन्न। केवल जानकारी के लिए — पेशेवर चिकित्सा सलाह का विकल्प नहीं।',
+      'keep_sharing_growing':
+          'हर चेक-इन स्वस्थ जीवन की ओर एक कदम है।\nसाझा करते रहें, बढ़ते रहें।',
+      'ai_disclaimer_reward':
+          'AI द्वारा आपकी वेलनेस प्रोफ़ाइल के आधार पर उत्पन्न। केवल जानकारी के लिए — पेशेवर चिकित्सा सलाह का विकल्प नहीं।',
       'no_image_selected': 'कोई इमेज चयनित नहीं',
       'choose_image_source': 'इमेज स्रोत चुनें',
       'take_photo': 'फोटो लें',
       'upload_gallery': 'गैलरी से अपलोड करें',
       'analyze_image': 'इमेज का विश्लेषण करें',
       'analyzing_image': 'विश्लेषण हो रहा है...',
-      'no_condition_detected': 'कोई स्थिति नहीं पाई गई। कृपया दूसरी इमेज आज़माएँ।',
+      'no_condition_detected':
+          'कोई स्थिति नहीं पाई गई। कृपया दूसरी इमेज आज़माएँ।',
       'medical_image': 'मेडिकल इमेज',
       'detection_results': 'पहचान परिणाम',
       'detected_condition': 'पहचानी गई स्थिति',
@@ -610,7 +670,8 @@ class AppStrings {
       'description': 'विवरण',
       '3d_visualization': '3D विज़ुअलाइज़ेशन',
       'rotate_zoom': '3D मॉडल को घुमाएँ, ज़ूम करें और देखें',
-      'ai_disclaimer': 'यह AI-संचालित विश्लेषण है। सटीक निदान के लिए कृपया स्वास्थ्य पेशेवर से परामर्श करें।',
+      'ai_disclaimer':
+          'यह AI-संचालित विश्लेषण है। सटीक निदान के लिए कृपया स्वास्थ्य पेशेवर से परामर्श करें।',
       'record_upload_heart': 'विश्लेषण के लिए हृदय ध्वनि रिकॉर्ड या अपलोड करें',
       'recording': 'रिकॉर्डिंग...',
       'heart_sound_analysis': 'हृदय ध्वनि विश्लेषण',
@@ -690,7 +751,8 @@ class AppStrings {
       'neurology': 'तंत्रिका विज्ञान',
       'cardiology': 'हृदय विज्ञान',
       'no_description': 'कोई नैदानिक विवरण उपलब्ध नहीं।',
-      'rec_dermatology_appointment': 'नैदानिक मूल्यांकन के लिए त्वचा विशेषज्ञ से मिलें',
+      'rec_dermatology_appointment':
+          'नैदानिक मूल्यांकन के लिए त्वचा विशेषज्ञ से मिलें',
       'rec_urgent_dermatology': 'तत्काल: तुरंत त्वचा विशेषज्ञ से परामर्श करें',
       'rec_biopsy': 'निश्चित निदान के लिए बायोप्सी आवश्यक हो सकती है',
       'rec_sun_exposure': 'प्रभावित क्षेत्र पर अत्यधिक धूप से बचें',
@@ -699,16 +761,21 @@ class AppStrings {
       'rec_pulmonologist': 'आगे मूल्यांकन के लिए फुफ्फुस विशेषज्ञ से मिलें',
       'rec_urgent_medical': 'तत्काल: तुरंत चिकित्सा ध्यान की सिफ़ारिश',
       'rec_additional_imaging': 'अतिरिक्त इमेजिंग (CT स्कैन) आवश्यक हो सकती है',
-      'rec_monitor_respiratory': 'श्वसन लक्षणों (खांसी, सांस फूलना) की निगरानी करें',
+      'rec_monitor_respiratory':
+          'श्वसन लक्षणों (खांसी, सांस फूलना) की निगरानी करें',
       'rec_avoid_smoking': 'धूम्रपान और प्रदूषकों से बचें',
       'rec_urgent_neurology': 'तत्काल: तुरंत न्यूरोलॉजी परामर्श लें',
       'rec_mri_followup': 'कंट्रास्ट के साथ MRI फॉलो-अप की सिफ़ारिश',
-      'rec_monitor_neurological': 'न्यूरोलॉजिकल लक्षणों (सिरदर्द, दृष्टि परिवर्तन, दौरे) की निगरानी करें',
+      'rec_monitor_neurological':
+          'न्यूरोलॉजिकल लक्षणों (सिरदर्द, दृष्टि परिवर्तन, दौरे) की निगरानी करें',
       'rec_symptom_diary': 'न्यूरोलॉजिस्ट के लिए लक्षण डायरी रखें',
       'rec_cardiologist': 'नैदानिक मूल्यांकन के लिए हृदय विशेषज्ञ से मिलें',
-      'rec_urgent_cardiology': 'तत्काल: प्राथमिकता कार्डियोलॉजी रेफ़रल की सिफ़ारिश',
-      'rec_echocardiogram': 'वाल्व मूल्यांकन के लिए इकोकार्डियोग्राम की सिफ़ारिश',
-      'rec_monitor_cardiac': 'लक्षणों (सीने में दर्द, धड़कन, चक्कर) की निगरानी करें',
+      'rec_urgent_cardiology':
+          'तत्काल: प्राथमिकता कार्डियोलॉजी रेफ़रल की सिफ़ारिश',
+      'rec_echocardiogram':
+          'वाल्व मूल्यांकन के लिए इकोकार्डियोग्राम की सिफ़ारिश',
+      'rec_monitor_cardiac':
+          'लक्षणों (सीने में दर्द, धड़कन, चक्कर) की निगरानी करें',
       'rec_avoid_strenuous': 'अनुमति मिलने तक कठिन शारीरिक गतिविधि से बचें',
       'health_alerts': 'स्वास्थ्य अलर्ट',
       'new_alerts': '{count} नए',

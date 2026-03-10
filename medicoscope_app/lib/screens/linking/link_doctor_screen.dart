@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
 
 class LinkDoctorScreen extends StatefulWidget {
-  const LinkDoctorScreen({Key? key}) : super(key: key);
+  const LinkDoctorScreen({super.key});
 
   @override
   State<LinkDoctorScreen> createState() => _LinkDoctorScreenState();

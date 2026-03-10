@@ -20,10 +20,10 @@ class ImageUploadScreen extends StatefulWidget {
   final String? patientId;
 
   const ImageUploadScreen({
-    Key? key,
+    super.key,
     required this.category,
     this.patientId,
-  }) : super(key: key);
+  });
 
   @override
   State<ImageUploadScreen> createState() => _ImageUploadScreenState();

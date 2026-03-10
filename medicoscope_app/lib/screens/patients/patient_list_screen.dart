@@ -12,7 +12,7 @@ import 'package:medicoscope/core/locale/locale_provider.dart';
 import 'package:medicoscope/core/locale/app_strings.dart';
 
 class PatientListScreen extends StatefulWidget {
-  const PatientListScreen({Key? key}) : super(key: key);
+  const PatientListScreen({super.key});
 
   @override
   State<PatientListScreen> createState() => _PatientListScreenState();

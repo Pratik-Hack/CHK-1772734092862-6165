@@ -12,7 +12,7 @@ import 'package:medicoscope/core/locale/locale_provider.dart';
 import 'package:medicoscope/core/locale/app_strings.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({Key? key}) : super(key: key);
+  const NotificationsScreen({super.key});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -110,6 +110,51 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         }
       });
     } catch (_) {}
+  }
+
+  Future<void> _deleteVitalsAlert(String id) async {
+    try {
+      await VitalsService.deleteAlert(alertId: id);
+      setState(() {
+        _vitalsAlerts.removeWhere((a) => a['id'] == id);
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _deleteMentalNotification(String id) async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await MentalHealthService.deleteNotification(
+        notificationId: id,
+        token: authProvider.token ?? '',
+      );
+      setState(() {
+        _mentalNotifications.removeWhere((n) => n['id'] == id);
+      });
+    } catch (_) {}
+  }
+
+  void _confirmDelete(String title, VoidCallback onDelete) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: const Text('Are you sure you want to delete this?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              onDelete();
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   Color _urgencyColor(String urgency) {
@@ -515,6 +560,42 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                             ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () => _confirmDelete(
+                            AppStrings.get('delete_alert', lang),
+                            () => _deleteVitalsAlert(a['id']),
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF5252).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.delete_outline,
+                                    size: 14, color: Color(0xFFFF5252)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  AppStrings.get('delete', lang),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFFFF5252),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
 
                     if (!isExpanded)
@@ -758,6 +839,42 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                           color: isDark
                               ? AppTheme.darkTextLight
                               : AppTheme.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () => _confirmDelete(
+                            AppStrings.get('delete_alert', lang),
+                            () => _deleteMentalNotification(n['id']),
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF5252).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.delete_outline,
+                                    size: 14, color: Color(0xFFFF5252)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  AppStrings.get('delete', lang),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFFFF5252),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ],

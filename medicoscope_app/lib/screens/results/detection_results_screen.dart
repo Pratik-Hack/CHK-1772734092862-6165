@@ -17,10 +17,10 @@ class DetectionResultsScreen extends StatefulWidget {
   final File imageFile;
 
   const DetectionResultsScreen({
-    Key? key,
+    super.key,
     required this.result,
     required this.imageFile,
-  }) : super(key: key);
+  });
 
   @override
   State<DetectionResultsScreen> createState() =>

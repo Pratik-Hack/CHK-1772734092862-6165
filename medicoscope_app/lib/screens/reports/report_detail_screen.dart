@@ -14,10 +14,10 @@ class ReportDetailScreen extends StatelessWidget {
   final DetectionRecord record;
 
   const ReportDetailScreen({
-    Key? key,
+    super.key,
     required this.patientName,
     required this.record,
-  }) : super(key: key);
+  });
 
   Map<String, dynamic>? get _diseaseInfo =>
       DiseaseDatabase.getDiseaseInfo(record.className);

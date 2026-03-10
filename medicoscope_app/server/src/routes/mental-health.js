@@ -42,14 +42,14 @@ router.get('/notifications/:doctorId', auth, async (req, res) => {
     // Map _id to id for Flutter compatibility
     const mapped = notifications.map(n => ({
       id: n._id.toString(),
-      doctorId: n.doctorId.toString(),
-      patientId: n.patientId,
-      patientName: n.patientName,
-      clinicalReport: n.clinicalReport,
+      doctor_id: n.doctorId.toString(),
+      patient_id: n.patientId,
+      patient_name: n.patientName,
+      report: n.clinicalReport,
       urgency: n.urgency,
       transcript: n.transcript,
       read: n.read,
-      createdAt: n.createdAt.toISOString(),
+      created_at: n.createdAt.toISOString(),
     }));
 
     res.json({ notifications: mapped });
@@ -80,6 +80,24 @@ router.get('/notifications/unread-count/:doctorId', auth, async (req, res) => {
     res.json({ count });
   } catch (error) {
     res.status(500).json({ message: 'Failed to get count' });
+  }
+});
+
+// DELETE /api/mental-health/notifications/:id — delete a notification (doctor only)
+router.delete('/notifications/:id', auth, async (req, res) => {
+  try {
+    const notification = await MentalHealthNotification.findById(req.params.id);
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+    if (notification.doctorId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to delete this notification' });
+    }
+    await MentalHealthNotification.findByIdAndDelete(req.params.id);
+    res.json({ status: 'deleted' });
+  } catch (error) {
+    console.error('Delete notification error:', error);
+    res.status(500).json({ message: 'Failed to delete notification' });
   }
 });
 

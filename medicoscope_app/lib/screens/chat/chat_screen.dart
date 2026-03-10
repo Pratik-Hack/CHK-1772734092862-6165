@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({Key? key}) : super(key: key);
+  const ChatScreen({super.key});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();

@@ -6,6 +6,7 @@ import 'package:medicoscope/core/widgets/glass_card.dart';
 import 'package:medicoscope/screens/upload/image_upload_screen.dart';
 import 'package:medicoscope/screens/heart/heart_monitoring_screen.dart';
 import 'package:medicoscope/services/mental_health_service.dart';
+import 'package:medicoscope/services/vitals_service.dart';
 import 'package:medicoscope/core/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
@@ -15,8 +16,7 @@ import 'package:medicoscope/core/locale/app_strings.dart';
 class PatientDetailScreen extends StatefulWidget {
   final Map<String, dynamic> patient;
 
-  const PatientDetailScreen({Key? key, required this.patient})
-      : super(key: key);
+  const PatientDetailScreen({super.key, required this.patient});
 
   @override
   State<PatientDetailScreen> createState() => _PatientDetailScreenState();
@@ -26,10 +26,14 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
   List<Map<String, dynamic>> _mentalHealthReports = [];
   bool _loadingReports = true;
 
+  List<Map<String, dynamic>> _vitalsAlerts = [];
+  bool _loadingVitals = true;
+
   @override
   void initState() {
     super.initState();
     _fetchReports();
+    _fetchVitalsAlerts();
   }
 
   Future<void> _fetchReports() async {
@@ -48,6 +52,97 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       });
     } catch (_) {
       setState(() => _loadingReports = false);
+    }
+  }
+
+  Future<void> _fetchVitalsAlerts() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final doctorId = authProvider.user?.id ?? '';
+    final patientId = widget.patient['userId']?.toString() ?? '';
+    try {
+      final all = await VitalsService.getDoctorAlerts(doctorId: doctorId);
+      setState(() {
+        _vitalsAlerts = all
+            .where((a) =>
+                a['patient_id'] == patientId ||
+                a['patient_name'] == widget.patient['name'])
+            .toList();
+        _loadingVitals = false;
+      });
+    } catch (_) {
+      setState(() => _loadingVitals = false);
+    }
+  }
+
+  Future<void> _deleteVitalsAlert(String alertId) async {
+    try {
+      await VitalsService.deleteAlert(alertId: alertId);
+      setState(() {
+        _vitalsAlerts.removeWhere((a) => a['id'] == alertId);
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _deleteMentalReport(String reportId) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    try {
+      await MentalHealthService.deleteNotification(
+        notificationId: reportId,
+        token: authProvider.token ?? '',
+      );
+      setState(() {
+        _mentalHealthReports.removeWhere((r) => r['id'] == reportId);
+      });
+    } catch (_) {}
+  }
+
+  void _confirmDelete(String title, VoidCallback onDelete) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: const Text('Are you sure you want to delete this?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              onDelete();
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _timeAgo(String isoDate) {
+    try {
+      final date = DateTime.parse(isoDate);
+      final diff = DateTime.now().toUtc().difference(date);
+      if (diff.inMinutes < 1) return 'Just now';
+      if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+      if (diff.inHours < 24) return '${diff.inHours}h ago';
+      return '${diff.inDays}d ago';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  Color _severityColor(String severity) {
+    switch (severity.toLowerCase()) {
+      case 'critical':
+        return const Color(0xFFFF5252);
+      case 'high':
+      case 'warning':
+        return const Color(0xFFFF7043);
+      case 'medium':
+        return const Color(0xFFFF9800);
+      default:
+        return const Color(0xFF4CAF50);
     }
   }
 
@@ -310,6 +405,166 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
                   const SizedBox(height: AppTheme.spacingXLarge),
 
+                  // Vitals Alerts Section
+                  Text(
+                    AppStrings.get('vitals_alerts', lang),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color:
+                          isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                    ),
+                  ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
+
+                  const SizedBox(height: AppTheme.spacingMedium),
+
+                  if (_loadingVitals)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  else if (_vitalsAlerts.isEmpty)
+                    GlassCard(
+                      padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                      child: Center(
+                        child: Text(
+                          AppStrings.get('no_vitals_alerts_patient', lang),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark
+                                ? AppTheme.darkTextGray
+                                : AppTheme.textGray,
+                          ),
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 700.ms, duration: 400.ms)
+                  else
+                    ..._vitalsAlerts.asMap().entries.map((entry) {
+                      final a = entry.value;
+                      final severity = a['severity'] ?? 'warning';
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: AppTheme.spacingSmall),
+                        child: GlassCard(
+                          padding: const EdgeInsets.all(AppTheme.spacingMedium),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _severityColor(severity)
+                                          .withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      severity.toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: _severityColor(severity),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    Icons.monitor_heart_outlined,
+                                    size: 14,
+                                    color: isDark
+                                        ? AppTheme.darkTextDim
+                                        : AppTheme.textLight,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    (a['vital'] ?? '')
+                                        .toString()
+                                        .replaceAll('_', ' '),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark
+                                          ? AppTheme.darkTextGray
+                                          : AppTheme.textGray,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    _timeAgo(a['created_at'] ??
+                                        a['timestamp'] ??
+                                        ''),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark
+                                          ? AppTheme.darkTextDim
+                                          : AppTheme.textLight,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  GestureDetector(
+                                    onTap: () => _confirmDelete(
+                                      AppStrings.get('delete_alert', lang),
+                                      () => _deleteVitalsAlert(a['id']),
+                                    ),
+                                    child: const Icon(
+                                      Icons.delete_outline,
+                                      size: 18,
+                                      color: Color(0xFFFF5252),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                a['message'] ?? '',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  height: 1.4,
+                                  color: isDark
+                                      ? AppTheme.darkTextLight
+                                      : AppTheme.textDark,
+                                ),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Current: ${a['current_value'] ?? 'N/A'}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark
+                                          ? AppTheme.darkTextGray
+                                          : AppTheme.textGray,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Threshold: ${a['predicted_value'] ?? 'N/A'}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark
+                                          ? AppTheme.darkTextGray
+                                          : AppTheme.textGray,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ).animate().fadeIn(
+                          delay: (700 + entry.key * 100).ms, duration: 400.ms);
+                    }),
+
+                  const SizedBox(height: AppTheme.spacingXLarge),
+
                   // Mental Health Reports Section
                   Text(
                     AppStrings.get('mental_health_reports', lang),
@@ -389,6 +644,18 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                       color: isDark
                                           ? AppTheme.darkTextDim
                                           : AppTheme.textLight,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  GestureDetector(
+                                    onTap: () => _confirmDelete(
+                                      AppStrings.get('delete_alert', lang),
+                                      () => _deleteMentalReport(n['id']),
+                                    ),
+                                    child: const Icon(
+                                      Icons.delete_outline,
+                                      size: 18,
+                                      color: Color(0xFFFF5252),
                                     ),
                                   ),
                                 ],

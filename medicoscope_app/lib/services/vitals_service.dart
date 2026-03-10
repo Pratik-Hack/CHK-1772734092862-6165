@@ -27,20 +27,22 @@ class VitalsService {
       '${ApiConstants.chatbotBaseUrl}${ApiConstants.vitalsStart}',
     );
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'patient_id': patientId,
-        'patient_name': patientName,
-        'doctor_id': doctorId,
-        'emergency_contact_name': emergencyContactName,
-        'emergency_contact_phone': emergencyContactPhone,
-        'location': location,
-        'latitude': latitude,
-        'longitude': longitude,
-      }),
-    ).timeout(const Duration(seconds: 30));
+    final response = await http
+        .post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'patient_id': patientId,
+            'patient_name': patientName,
+            'doctor_id': doctorId,
+            'emergency_contact_name': emergencyContactName,
+            'emergency_contact_phone': emergencyContactPhone,
+            'location': location,
+            'latitude': latitude,
+            'longitude': longitude,
+          }),
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -58,11 +60,13 @@ class VitalsService {
       '${ApiConstants.chatbotBaseUrl}${ApiConstants.vitalsTick}',
     );
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'session_id': sessionId}),
-    ).timeout(const Duration(seconds: 15));
+    final response = await http
+        .post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'session_id': sessionId}),
+        )
+        .timeout(const Duration(seconds: 15));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -121,5 +125,13 @@ class VitalsService {
     );
 
     await http.put(url).timeout(const Duration(seconds: 10));
+  }
+
+  static Future<void> deleteAlert({required String alertId}) async {
+    final url = Uri.parse(
+      '${ApiConstants.chatbotBaseUrl}/vitals/alerts/$alertId',
+    );
+
+    await http.delete(url).timeout(const Duration(seconds: 10));
   }
 }

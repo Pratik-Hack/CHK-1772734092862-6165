@@ -13,12 +13,12 @@ class RewardContentScreen extends StatelessWidget {
   final List<Color> gradient;
 
   const RewardContentScreen({
-    Key? key,
+    super.key,
     required this.title,
     required this.content,
     required this.icon,
     required this.gradient,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

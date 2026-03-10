@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
 
 class RewardsScreen extends StatefulWidget {
-  const RewardsScreen({Key? key}) : super(key: key);
+  const RewardsScreen({super.key});
 
   @override
   State<RewardsScreen> createState() => _RewardsScreenState();

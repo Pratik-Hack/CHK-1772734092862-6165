@@ -13,7 +13,7 @@ import 'package:medicoscope/core/locale/app_strings.dart';
 class HeartResultsScreen extends StatefulWidget {
   final CardioResult result;
 
-  const HeartResultsScreen({Key? key, required this.result}) : super(key: key);
+  const HeartResultsScreen({super.key, required this.result});
 
   @override
   State<HeartResultsScreen> createState() => _HeartResultsScreenState();

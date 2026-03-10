@@ -19,7 +19,7 @@ import 'package:record/record.dart';
 class HeartMonitoringScreen extends StatefulWidget {
   final String? patientId;
 
-  const HeartMonitoringScreen({Key? key, this.patientId}) : super(key: key);
+  const HeartMonitoringScreen({super.key, this.patientId});
 
   @override
   State<HeartMonitoringScreen> createState() => _HeartMonitoringScreenState();

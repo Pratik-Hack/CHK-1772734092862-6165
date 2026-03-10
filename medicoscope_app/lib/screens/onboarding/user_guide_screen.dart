@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class UserGuideScreen extends StatefulWidget {
-  const UserGuideScreen({Key? key}) : super(key: key);
+  const UserGuideScreen({super.key});
 
   @override
   State<UserGuideScreen> createState() => _UserGuideScreenState();

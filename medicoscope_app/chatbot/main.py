@@ -489,7 +489,10 @@ def _make_alert(session: dict, alert_type: str, severity: str,
         "maps_url": f"https://www.google.com/maps?q={session.get('latitude',0)},{session.get('longitude',0)}",
         "emergency_contact_name": session.get("emergency_contact_name", ""),
         "emergency_contact_phone": session.get("emergency_contact_phone", ""),
+        "patient_id": session.get("patient_id", ""),
         "patient_name": session.get("patient_name", ""),
+        "doctor_id": session.get("doctor_id", ""),
+        "created_at": datetime.utcnow().isoformat(),
         "read": False,
     }
 
@@ -581,6 +584,14 @@ async def vitals_mark_alert_read(alert_id: str):
             if alert.get("id") == alert_id:
                 alert["read"] = True
     return {"status": "ok"}
+
+
+@app.delete("/vitals/alerts/{alert_id}")
+async def vitals_delete_alert(alert_id: str):
+    """Delete a vitals alert by ID."""
+    for key in list(vitals_alerts.keys()):
+        vitals_alerts[key] = [a for a in vitals_alerts[key] if a.get("id") != alert_id]
+    return {"status": "deleted"}
 
 
 # ── Run ─────────────────────────────────────────────────────────────────────

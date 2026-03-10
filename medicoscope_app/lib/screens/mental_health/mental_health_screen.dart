@@ -18,7 +18,7 @@ import 'package:medicoscope/core/locale/app_strings.dart';
 import 'package:record/record.dart';
 
 class MentalHealthScreen extends StatefulWidget {
-  const MentalHealthScreen({Key? key}) : super(key: key);
+  const MentalHealthScreen({super.key});
 
   @override
   State<MentalHealthScreen> createState() => _MentalHealthScreenState();

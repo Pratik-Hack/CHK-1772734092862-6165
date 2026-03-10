@@ -9,7 +9,7 @@ import 'package:medicoscope/core/locale/locale_provider.dart';
 import 'package:medicoscope/core/locale/app_strings.dart';
 
 class MainSelectionScreen extends StatelessWidget {
-  const MainSelectionScreen({Key? key}) : super(key: key);
+  const MainSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

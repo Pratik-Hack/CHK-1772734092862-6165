@@ -15,7 +15,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class VitalsScreen extends StatefulWidget {
-  const VitalsScreen({Key? key}) : super(key: key);
+  const VitalsScreen({super.key});
 
   @override
   State<VitalsScreen> createState() => _VitalsScreenState();

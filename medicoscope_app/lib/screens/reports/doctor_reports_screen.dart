@@ -14,7 +14,7 @@ import 'package:medicoscope/core/locale/locale_provider.dart';
 import 'package:medicoscope/core/locale/app_strings.dart';
 
 class DoctorReportsScreen extends StatefulWidget {
-  const DoctorReportsScreen({Key? key}) : super(key: key);
+  const DoctorReportsScreen({super.key});
 
   @override
   State<DoctorReportsScreen> createState() => _DoctorReportsScreenState();
@@ -268,7 +268,7 @@ class _DoctorReportsScreenState extends State<DoctorReportsScreen> {
                                 Text(
                                   _selectedCategory == 'all'
                                       ? AppStrings.get('records_appear_here', lang)
-                                      : '${AppStrings.get('no_reports_found', lang)}',
+                                      : AppStrings.get('no_reports_found', lang),
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,

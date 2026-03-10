@@ -20,7 +20,7 @@ import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
 
 class PatientDashboardScreen extends StatelessWidget {
-  const PatientDashboardScreen({Key? key}) : super(key: key);
+  const PatientDashboardScreen({super.key});
 
   void _navigateTo(BuildContext context, Widget screen) {
     Navigator.of(context).push(

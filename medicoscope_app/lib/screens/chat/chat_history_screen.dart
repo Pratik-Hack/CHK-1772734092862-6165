@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
 
 class ChatHistoryScreen extends StatefulWidget {
-  const ChatHistoryScreen({Key? key}) : super(key: key);
+  const ChatHistoryScreen({super.key});
 
   @override
   State<ChatHistoryScreen> createState() => _ChatHistoryScreenState();

@@ -4,7 +4,7 @@ import 'package:medicoscope/core/locale/locale_provider.dart';
 import 'package:provider/provider.dart';
 
 class LanguagePicker extends StatelessWidget {
-  const LanguagePicker({Key? key}) : super(key: key);
+  const LanguagePicker({super.key});
 
   @override
   Widget build(BuildContext context) {

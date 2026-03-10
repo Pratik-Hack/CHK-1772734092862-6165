@@ -56,6 +56,16 @@ class MentalHealthService {
     );
   }
 
+  static Future<void> deleteNotification({
+    required String notificationId,
+    required String token,
+  }) async {
+    final api = ApiService(token: token);
+    await api.delete(
+      '${ApiConstants.mentalHealthNotifications}/$notificationId',
+    );
+  }
+
   static Future<String> redeemReward({
     required String rewardType,
     required String patientName,

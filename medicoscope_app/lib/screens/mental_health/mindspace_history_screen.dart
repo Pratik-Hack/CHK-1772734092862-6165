@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
 
 class MindSpaceHistoryScreen extends StatefulWidget {
-  const MindSpaceHistoryScreen({Key? key}) : super(key: key);
+  const MindSpaceHistoryScreen({super.key});
 
   @override
   State<MindSpaceHistoryScreen> createState() => _MindSpaceHistoryScreenState();
