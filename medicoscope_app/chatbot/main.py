@@ -252,13 +252,18 @@ async def analyze_mental_health(
             pass
 
         # User-facing empathetic response
-        user_prompt = f"""You are a compassionate mental health companion for HearMe.
-A user just shared their feelings. Here's their transcription:
+        user_prompt = f"""You are a compassionate mental health companion for MedicoScope MindSpace.
+A user just shared their feelings through a voice check-in. Here's their transcription:
 
 "{transcript}"
 
-Provide a warm, empathetic response. Acknowledge their feelings, offer supportive words, and suggest healthy coping strategies.
-Keep it concise (3-5 sentences). {lang_instruction}"""
+Provide a warm, empathetic, and detailed response that:
+1. Acknowledges and validates their specific feelings with genuine empathy
+2. Reflects back what they shared to show you truly listened
+3. Offers 2-3 practical and personalized coping strategies relevant to what they described
+4. Ends with an encouraging, hopeful note
+
+Write 2-3 short paragraphs (8-12 sentences total). Be conversational and caring, like a supportive friend who also understands wellness. {lang_instruction}"""
 
         user_response = llm.invoke(user_prompt)
 
@@ -308,10 +313,11 @@ Format as a professional clinical note. Respond in English."""
                 print(f"Warning: Failed to save notification to backend: {notif_err}")
 
         return {
-            "user_response": user_response.content,
+            "user_message": user_response.content,
             "transcript": transcript,
             "doctor_report": doctor_report,
             "urgency": urgency,
+            "coins_earned": 10,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
