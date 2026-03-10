@@ -53,6 +53,10 @@ BACKEND_URL = os.getenv("BACKEND_URL", "https://hearme-server.onrender.com/api")
 # ── In-memory stores ────────────────────────────────────────────────────────
 session_histories: dict[str, list] = {}
 
+# ── Vitals in-memory stores ─────────────────────────────────────────────────
+vitals_sessions: dict[str, dict] = {}   # session_id -> session data
+vitals_alerts: dict[str, list] = {}     # doctor_id / patient_id -> [alerts]
+
 # ── Medical Knowledge Base ──────────────────────────────────────────────────
 MEDICAL_DATA = {
     "skin_diseases": {
@@ -358,6 +362,214 @@ Make each tip detailed and evidence-based. {lang_instruction}""",
         return {"content": response.content, "reward_type": req.reward_type}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Vitals Monitoring ───────────────────────────────────────────────────────
+
+VITALS_SCENARIOS = ["resting", "mild_activity", "post_exercise", "sleeping", "stressed"]
+
+# Normal baseline ranges
+VITALS_BASELINES = {
+    "resting":       {"hr": (65, 80),  "sys": (110, 125), "dia": (70, 80),  "spo2": (96, 99)},
+    "mild_activity": {"hr": (80, 100), "sys": (115, 135), "dia": (72, 85),  "spo2": (95, 98)},
+    "post_exercise": {"hr": (100,130), "sys": (125, 145), "dia": (75, 88),  "spo2": (94, 98)},
+    "sleeping":      {"hr": (55, 70),  "sys": (100, 115), "dia": (60, 75),  "spo2": (95, 99)},
+    "stressed":      {"hr": (85, 110), "sys": (125, 145), "dia": (80, 92),  "spo2": (95, 98)},
+}
+
+ALERT_THRESHOLDS = {
+    "heart_rate_high":  130,
+    "heart_rate_low":   50,
+    "systolic_high":    150,
+    "systolic_low":     85,
+    "spo2_low":         92,
+}
+
+
+def _generate_vitals(session: dict) -> list[dict]:
+    """Generate 1-3 simulated data points for a tick."""
+    scenario = session["scenario"]
+    baseline = VITALS_BASELINES[scenario]
+    tick = session["tick_counter"]
+    points = []
+
+    count = random.randint(1, 3)
+    for i in range(count):
+        tick += 1
+        # Add some drift and noise
+        drift = session.get("drift", 0)
+        # Occasionally shift drift to simulate natural fluctuation
+        if random.random() < 0.08:
+            drift = random.uniform(-8, 8)
+            session["drift"] = drift
+
+        hr = random.uniform(*baseline["hr"]) + drift + random.gauss(0, 3)
+        sys_ = random.uniform(*baseline["sys"]) + drift * 0.5 + random.gauss(0, 4)
+        dia = random.uniform(*baseline["dia"]) + drift * 0.3 + random.gauss(0, 2)
+        spo2 = random.uniform(*baseline["spo2"]) + random.gauss(0, 0.5)
+
+        # Clamp to physiologically possible values
+        hr = max(35, min(200, hr))
+        sys_ = max(70, min(220, sys_))
+        dia = max(40, min(130, dia))
+        spo2 = max(70, min(100, spo2))
+
+        points.append({
+            "tick": tick,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "heart_rate": round(hr, 1),
+            "systolic": round(sys_, 1),
+            "diastolic": round(dia, 1),
+            "spo2": round(spo2, 1),
+        })
+
+    session["tick_counter"] = tick
+    return points
+
+
+def _check_alerts(session: dict, points: list[dict]) -> list[dict]:
+    """Check data points against thresholds and generate alerts."""
+    alerts = []
+    for pt in points:
+        ts = pt["timestamp"]
+
+        if pt["heart_rate"] > ALERT_THRESHOLDS["heart_rate_high"]:
+            alerts.append(_make_alert(session, "tachycardia", "warning",
+                f"Heart rate elevated: {pt['heart_rate']} bpm",
+                "heart_rate", pt["heart_rate"], ALERT_THRESHOLDS["heart_rate_high"], ts))
+        elif pt["heart_rate"] < ALERT_THRESHOLDS["heart_rate_low"]:
+            alerts.append(_make_alert(session, "bradycardia", "critical",
+                f"Heart rate dangerously low: {pt['heart_rate']} bpm",
+                "heart_rate", pt["heart_rate"], ALERT_THRESHOLDS["heart_rate_low"], ts))
+
+        if pt["systolic"] > ALERT_THRESHOLDS["systolic_high"]:
+            alerts.append(_make_alert(session, "hypertension", "warning",
+                f"Blood pressure high: {pt['systolic']}/{pt['diastolic']} mmHg",
+                "systolic", pt["systolic"], ALERT_THRESHOLDS["systolic_high"], ts))
+        elif pt["systolic"] < ALERT_THRESHOLDS["systolic_low"]:
+            alerts.append(_make_alert(session, "hypotension", "warning",
+                f"Blood pressure low: {pt['systolic']}/{pt['diastolic']} mmHg",
+                "systolic", pt["systolic"], ALERT_THRESHOLDS["systolic_low"], ts))
+
+        if pt["spo2"] < ALERT_THRESHOLDS["spo2_low"]:
+            sev = "critical" if pt["spo2"] < 88 else "warning"
+            alerts.append(_make_alert(session, "hypoxia", sev,
+                f"SpO2 low: {pt['spo2']}%",
+                "spo2", pt["spo2"], ALERT_THRESHOLDS["spo2_low"], ts))
+
+    return alerts
+
+
+def _make_alert(session: dict, alert_type: str, severity: str,
+                message: str, vital: str, current: float, predicted: float,
+                timestamp: str) -> dict:
+    return {
+        "id": str(uuid.uuid4()),
+        "type": alert_type,
+        "severity": severity,
+        "message": message,
+        "vital": vital,
+        "current_value": current,
+        "predicted_value": predicted,
+        "timestamp": timestamp,
+        "location": session.get("location", ""),
+        "latitude": session.get("latitude", 0),
+        "longitude": session.get("longitude", 0),
+        "maps_url": f"https://www.google.com/maps?q={session.get('latitude',0)},{session.get('longitude',0)}",
+        "emergency_contact_name": session.get("emergency_contact_name", ""),
+        "emergency_contact_phone": session.get("emergency_contact_phone", ""),
+        "patient_name": session.get("patient_name", ""),
+        "read": False,
+    }
+
+
+class VitalsStartRequest(BaseModel):
+    patient_id: str
+    patient_name: str
+    doctor_id: str = ""
+    emergency_contact_name: str = ""
+    emergency_contact_phone: str = ""
+    location: str = "Unknown"
+    latitude: float = 0.0
+    longitude: float = 0.0
+
+
+class VitalsTickRequest(BaseModel):
+    session_id: str
+
+
+@app.post("/vitals/start")
+async def vitals_start(req: VitalsStartRequest):
+    session_id = str(uuid.uuid4())
+    scenario = random.choice(VITALS_SCENARIOS)
+
+    session = {
+        "session_id": session_id,
+        "scenario": scenario,
+        "patient_id": req.patient_id,
+        "patient_name": req.patient_name,
+        "doctor_id": req.doctor_id,
+        "emergency_contact_name": req.emergency_contact_name,
+        "emergency_contact_phone": req.emergency_contact_phone,
+        "location": req.location,
+        "latitude": req.latitude,
+        "longitude": req.longitude,
+        "tick_counter": 0,
+        "drift": 0,
+        "created_at": datetime.utcnow().isoformat(),
+    }
+
+    vitals_sessions[session_id] = session
+    return {"session_id": session_id, "scenario": scenario}
+
+
+@app.post("/vitals/tick")
+async def vitals_tick(req: VitalsTickRequest):
+    session = vitals_sessions.get(req.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found or expired")
+
+    points = _generate_vitals(session)
+    alerts = _check_alerts(session, points)
+
+    # Store alerts per doctor and patient for later querying
+    if alerts:
+        doctor_id = session.get("doctor_id", "")
+        patient_id = session.get("patient_id", "")
+        if doctor_id:
+            vitals_alerts.setdefault(f"doc_{doctor_id}", []).extend(alerts)
+        if patient_id:
+            vitals_alerts.setdefault(f"pat_{patient_id}", []).extend(alerts)
+
+    return {"data_points": points, "alerts": alerts}
+
+
+@app.delete("/vitals/session/{session_id}")
+async def vitals_stop(session_id: str):
+    vitals_sessions.pop(session_id, None)
+    return {"status": "stopped"}
+
+
+@app.get("/vitals/alerts/doctor/{doctor_id}")
+async def vitals_doctor_alerts(doctor_id: str):
+    alerts = vitals_alerts.get(f"doc_{doctor_id}", [])
+    return {"alerts": alerts}
+
+
+@app.get("/vitals/alerts/patient/{patient_id}")
+async def vitals_patient_alerts(patient_id: str):
+    alerts = vitals_alerts.get(f"pat_{patient_id}", [])
+    return {"alerts": alerts}
+
+
+@app.put("/vitals/alerts/{alert_id}/read")
+async def vitals_mark_alert_read(alert_id: str):
+    # Mark alert as read across all alert lists
+    for key in vitals_alerts:
+        for alert in vitals_alerts[key]:
+            if alert.get("id") == alert_id:
+                alert["read"] = True
+    return {"status": "ok"}
 
 
 # ── Run ─────────────────────────────────────────────────────────────────────
