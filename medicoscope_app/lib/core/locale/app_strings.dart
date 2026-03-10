@@ -429,6 +429,22 @@ class AppStrings {
       'sent_to_linked_doctor': 'Sent to linked doctor',
       'no_linked_doctor': 'No linked doctor',
       'no_emergency_contact': 'No emergency contact on file',
+
+      // Edit Profile
+      'edit_profile': 'Edit Profile',
+      'save': 'Save',
+      'name': 'Name',
+      'hospital': 'Hospital',
+      'basic_info': 'Basic Information',
+      'field_required': 'This field is required',
+      'medical_info': 'Medical Information',
+      'years_of_experience': 'Years of Experience',
+      'profile_updated': 'Profile updated successfully',
+
+      // Doctor Reports Summary
+      'patients': 'Patients',
+      'total_reports': 'Reports',
+      'high_confidence': 'High Risk',
     },
 
     // ═══════════════════════════════════════════════════════════════════

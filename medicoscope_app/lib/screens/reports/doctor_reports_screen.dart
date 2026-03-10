@@ -24,6 +24,7 @@ class _DoctorReportsScreenState extends State<DoctorReportsScreen> {
   List<_PatientReport> _allReports = [];
   bool _isLoading = true;
   String _selectedCategory = 'all';
+  bool _groupByPatient = false;
 
   final _categories = [
     {'key': 'all', 'labelKey': 'all'},
@@ -88,7 +89,31 @@ class _DoctorReportsScreenState extends State<DoctorReportsScreen> {
 
   List<_PatientReport> get _filteredReports {
     if (_selectedCategory == 'all') return _allReports;
-    return _allReports.where((r) => r.record.category == _selectedCategory).toList();
+    return _allReports
+        .where((r) => r.record.category == _selectedCategory)
+        .toList();
+  }
+
+  // Group reports by patient name
+  Map<String, List<_PatientReport>> get _groupedReports {
+    final grouped = <String, List<_PatientReport>>{};
+    for (final report in _filteredReports) {
+      grouped.putIfAbsent(report.patientName, () => []).add(report);
+    }
+    return grouped;
+  }
+
+  // Summary stats
+  int get _totalPatients =>
+      _allReports.map((r) => r.patientName).toSet().length;
+
+  Map<String, int> get _categoryCounts {
+    final counts = <String, int>{};
+    for (final report in _allReports) {
+      counts[report.record.category] =
+          (counts[report.record.category] ?? 0) + 1;
+    }
+    return counts;
   }
 
   IconData _categoryIcon(String category) {
@@ -161,7 +186,8 @@ class _DoctorReportsScreenState extends State<DoctorReportsScreen> {
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.arrow_back_ios),
-                      color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                      color:
+                          isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                     ),
                     Expanded(
                       child: Column(
@@ -172,38 +198,79 @@ class _DoctorReportsScreenState extends State<DoctorReportsScreen> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                              color: isDark
+                                  ? AppTheme.darkTextLight
+                                  : AppTheme.textDark,
                             ),
                           ),
                           Text(
                             AppStrings.get('detection_records_subtitle', lang),
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                              color: isDark
+                                  ? AppTheme.darkTextGray
+                                  : AppTheme.textGray,
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                    // Group by patient toggle
+                    GestureDetector(
+                      onTap: () =>
+                          setState(() => _groupByPatient = !_groupByPatient),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _groupByPatient
+                              ? AppTheme.primaryOrange
+                              : isDark
+                                  ? AppTheme.darkCard
+                                  : Colors.white,
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSmall),
+                          boxShadow: AppTheme.cardShadow,
+                        ),
+                        child: Icon(
+                          Icons.people_outline,
+                          size: 20,
+                          color: _groupByPatient
+                              ? Colors.white
+                              : isDark
+                                  ? AppTheme.darkTextLight
+                                  : AppTheme.textDark,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
 
+              // Summary Stats Row
+              if (!_isLoading && _allReports.isNotEmpty)
+                _buildSummaryStats(isDark, lang),
+
               // Category filter chips
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingMedium),
                 child: Row(
                   children: _categories.map((cat) {
                     final key = cat['key']!;
                     final isSelected = _selectedCategory == key;
+                    final count = key == 'all'
+                        ? _allReports.length
+                        : (_categoryCounts[key] ?? 0);
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: GestureDetector(
-                        onTap: () => setState(() => _selectedCategory = key),
+                        onTap: () =>
+                            setState(() => _selectedCategory = key),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppTheme.primaryOrange
@@ -214,23 +281,53 @@ class _DoctorReportsScreenState extends State<DoctorReportsScreen> {
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: AppTheme.primaryOrange.withOpacity(0.3),
+                                      color: AppTheme.primaryOrange
+                                          .withOpacity(0.3),
                                       blurRadius: 8,
                                     )
                                   ]
                                 : AppTheme.cardShadow,
                           ),
-                          child: Text(
-                            AppStrings.get(cat['labelKey']!, lang),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? Colors.white
-                                  : isDark
-                                      ? AppTheme.darkTextLight
-                                      : AppTheme.textDark,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                AppStrings.get(cat['labelKey']!, lang),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : isDark
+                                          ? AppTheme.darkTextLight
+                                          : AppTheme.textDark,
+                                ),
+                              ),
+                              if (count > 0) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.white.withOpacity(0.3)
+                                        : AppTheme.primaryOrange
+                                            .withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    '$count',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppTheme.primaryOrange,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ),
@@ -244,7 +341,8 @@ class _DoctorReportsScreenState extends State<DoctorReportsScreen> {
               // Content
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2))
                     : filtered.isEmpty
                         ? Center(
                             child: Column(
@@ -253,7 +351,9 @@ class _DoctorReportsScreenState extends State<DoctorReportsScreen> {
                                 Icon(
                                   Icons.description_outlined,
                                   size: 56,
-                                  color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                                  color: isDark
+                                      ? AppTheme.darkTextDim
+                                      : AppTheme.textLight,
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
@@ -261,17 +361,23 @@ class _DoctorReportsScreenState extends State<DoctorReportsScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                                    color: isDark
+                                        ? AppTheme.darkTextGray
+                                        : AppTheme.textGray,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   _selectedCategory == 'all'
-                                      ? AppStrings.get('records_appear_here', lang)
-                                      : AppStrings.get('no_reports_found', lang),
+                                      ? AppStrings.get(
+                                          'records_appear_here', lang)
+                                      : AppStrings.get(
+                                          'no_reports_found', lang),
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                                    color: isDark
+                                        ? AppTheme.darkTextDim
+                                        : AppTheme.textLight,
                                   ),
                                 ),
                               ],
@@ -279,32 +385,238 @@ class _DoctorReportsScreenState extends State<DoctorReportsScreen> {
                           )
                         : RefreshIndicator(
                             onRefresh: _fetchReports,
-                            child: ListView.builder(
-                              physics: const AlwaysScrollableScrollPhysics(
-                                parent: BouncingScrollPhysics(),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppTheme.spacingLarge,
-                              ),
-                              itemCount: filtered.length,
-                              itemBuilder: (context, index) {
-                                final report = filtered[index];
-                                return _ReportCard(
-                                  report: report,
-                                  isDark: isDark,
-                                  categoryIcon: _categoryIcon(report.record.category),
-                                  categoryColor: _categoryColor(report.record.category),
-                                  categoryLabel: _categoryLabel(report.record.category, lang),
-                                  animationDelay: index * 50,
-                                );
-                              },
-                            ),
+                            child: _groupByPatient
+                                ? _buildGroupedList(isDark, lang)
+                                : _buildFlatList(filtered, isDark, lang),
                           ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSummaryStats(bool isDark, String lang) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spacingLarge, vertical: AppTheme.spacingSmall),
+      child: GlassCard(
+        padding: const EdgeInsets.all(AppTheme.spacingMedium),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _statItem(
+              icon: Icons.people_outline,
+              value: '$_totalPatients',
+              label: AppStrings.get('patients', lang),
+              color: const Color(0xFF4ECDC4),
+              isDark: isDark,
+            ),
+            _statItem(
+              icon: Icons.description_outlined,
+              value: '${_allReports.length}',
+              label: AppStrings.get('total_reports', lang),
+              color: AppTheme.primaryOrange,
+              isDark: isDark,
+            ),
+            _statItem(
+              icon: Icons.warning_amber_rounded,
+              value: '${_allReports.where((r) => r.record.confidence >= 0.8).length}',
+              label: AppStrings.get('high_confidence', lang),
+              color: const Color(0xFFF5576C),
+              isDark: isDark,
+            ),
+          ],
+        ),
+      ),
+    )
+        .animate()
+        .fadeIn(duration: 400.ms)
+        .slideY(begin: -0.1, end: 0);
+  }
+
+  Widget _statItem({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+    required bool isDark,
+  }) {
+    return Column(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: color, size: 18),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFlatList(
+      List<_PatientReport> filtered, bool isDark, String lang) {
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingLarge,
+      ),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final report = filtered[index];
+        return _ReportCard(
+          report: report,
+          isDark: isDark,
+          categoryIcon: _categoryIcon(report.record.category),
+          categoryColor: _categoryColor(report.record.category),
+          categoryLabel: _categoryLabel(report.record.category, lang),
+          animationDelay: index * 50,
+        );
+      },
+    );
+  }
+
+  Widget _buildGroupedList(bool isDark, String lang) {
+    final grouped = _groupedReports;
+    final patientNames = grouped.keys.toList();
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+      itemCount: patientNames.length,
+      itemBuilder: (context, pIndex) {
+        final name = patientNames[pIndex];
+        final reports = grouped[name]!;
+        final catBreakdown = <String, int>{};
+        for (final r in reports) {
+          catBreakdown[r.record.category] =
+              (catBreakdown[r.record.category] ?? 0) + 1;
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Patient header card
+            GlassCard(
+              padding: const EdgeInsets.all(AppTheme.spacingMedium),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor:
+                        AppTheme.primaryOrange.withOpacity(0.15),
+                    child: Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primaryOrange,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? AppTheme.darkTextLight
+                                : AppTheme.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 6,
+                          children: catBreakdown.entries.map((e) {
+                            final color = _categoryColor(e.key);
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${_categoryLabel(e.key, lang)}: ${e.value}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: color,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '${reports.length}',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.primaryOrange,
+                    ),
+                  ),
+                ],
+              ),
+            )
+                .animate()
+                .fadeIn(
+                    delay: Duration(milliseconds: pIndex * 100),
+                    duration: 400.ms)
+                .slideY(begin: 0.05, end: 0),
+
+            const SizedBox(height: 4),
+
+            // Reports under this patient
+            ...reports.asMap().entries.map((entry) {
+              final index = entry.key;
+              final report = entry.value;
+              return _ReportCard(
+                report: report,
+                isDark: isDark,
+                categoryIcon: _categoryIcon(report.record.category),
+                categoryColor: _categoryColor(report.record.category),
+                categoryLabel:
+                    _categoryLabel(report.record.category, lang),
+                animationDelay: pIndex * 100 + index * 50 + 50,
+              );
+            }),
+
+            const SizedBox(height: AppTheme.spacingMedium),
+          ],
+        );
+      },
     );
   }
 }
@@ -337,7 +649,13 @@ class _ReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final record = report.record;
 
-    final dateStr = '${record.timestamp.day}/${record.timestamp.month}/${record.timestamp.year}';
+    final dateStr =
+        '${record.timestamp.day}/${record.timestamp.month}/${record.timestamp.year}';
+
+    // Confidence display
+    final confStr = record.category == 'heart_sound'
+        ? '${record.confidence.toStringAsFixed(0)} BPM'
+        : '${(record.confidence * 100).toStringAsFixed(1)}%';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spacingSmall),
@@ -379,7 +697,8 @@ class _ReportCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                        color:
+                            isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -387,7 +706,8 @@ class _ReportCard extends StatelessWidget {
                       report.patientName,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                        color:
+                            isDark ? AppTheme.darkTextGray : AppTheme.textGray,
                       ),
                     ),
                   ],
@@ -397,7 +717,8 @@ class _ReportCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: categoryColor.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(8),
@@ -413,10 +734,19 @@ class _ReportCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
+                    confStr,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryOrange,
+                    ),
+                  ),
+                  Text(
                     dateStr,
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                      color:
+                          isDark ? AppTheme.darkTextDim : AppTheme.textLight,
                     ),
                   ),
                 ],
@@ -433,7 +763,8 @@ class _ReportCard extends StatelessWidget {
       ),
     )
         .animate()
-        .fadeIn(delay: Duration(milliseconds: animationDelay), duration: 300.ms)
+        .fadeIn(
+            delay: Duration(milliseconds: animationDelay), duration: 300.ms)
         .slideY(begin: 0.05, end: 0);
   }
 }

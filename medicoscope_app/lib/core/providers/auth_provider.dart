@@ -114,6 +114,20 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshUser() async {
+    if (_token == null) return;
+    try {
+      final api = ApiService(token: _token);
+      final response = await api.get('/users/profile');
+      final userData = response['user'] as Map<String, dynamic>?;
+      if (userData != null) {
+        _user = UserModel.fromJson(userData);
+        await _persistAuth();
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
   Future<void> logout() async {
     _user = null;
     _token = null;

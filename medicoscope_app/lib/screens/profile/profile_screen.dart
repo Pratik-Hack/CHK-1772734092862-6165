@@ -7,6 +7,7 @@ import 'package:medicoscope/core/locale/locale_provider.dart';
 import 'package:medicoscope/core/locale/app_strings.dart';
 import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
+import 'package:medicoscope/screens/profile/edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -34,22 +35,82 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Back button
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: isDark ? AppTheme.darkCard : Colors.white,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-                        boxShadow: AppTheme.cardShadow,
+                  // Back button & Edit button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: isDark ? AppTheme.darkCard : Colors.white,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                            boxShadow: AppTheme.cardShadow,
+                          ),
+                          child: Icon(
+                            Icons.arrow_back,
+                            color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                          ),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.arrow_back,
-                        color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) =>
+                                  const EditProfileScreen(),
+                              transitionsBuilder:
+                                  (context, animation, secondaryAnimation, child) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 0.1),
+                                      end: Offset.zero,
+                                    ).animate(CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOut,
+                                    )),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              transitionDuration: const Duration(milliseconds: 300),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            gradient: AppTheme.orangeGradient,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryOrange.withOpacity(0.3),
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.edit_outlined, color: Colors.white, size: 16),
+                              const SizedBox(width: 6),
+                              Text(
+                                AppStrings.get('edit_profile', lang),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
 
                   const SizedBox(height: AppTheme.spacingXLarge),
