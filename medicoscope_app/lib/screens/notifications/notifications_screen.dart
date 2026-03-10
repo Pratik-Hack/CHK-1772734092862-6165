@@ -49,10 +49,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   Future<void> _fetchMentalNotifications() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final userId = authProvider.user?.id ?? '';
+    final token = authProvider.token ?? '';
 
     try {
       final notifications = await MentalHealthService.getNotifications(
         doctorId: userId,
+        token: token,
       );
       setState(() {
         _mentalNotifications = notifications;
@@ -80,7 +82,11 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
   Future<void> _markMentalAsRead(String id) async {
     try {
-      await MentalHealthService.markAsRead(notificationId: id);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await MentalHealthService.markAsRead(
+        notificationId: id,
+        token: authProvider.token ?? '',
+      );
       setState(() {
         for (final n in _mentalNotifications) {
           if (n['id'] == id) {
@@ -156,14 +162,16 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.arrow_back_ios),
-                      color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                      color:
+                          isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                     ),
                     Text(
                       AppStrings.get('notifications', lang),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                        color:
+                            isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                       ),
                     ),
                   ],
@@ -210,7 +218,9 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                           const Icon(Icons.monitor_heart_outlined, size: 16),
                           const SizedBox(width: 6),
                           Text(AppStrings.get('vitals_tab', lang)),
-                          if (_vitalsAlerts.where((a) => !(a['read'] ?? false)).isNotEmpty) ...[
+                          if (_vitalsAlerts
+                              .where((a) => !(a['read'] ?? false))
+                              .isNotEmpty) ...[
                             const SizedBox(width: 6),
                             Container(
                               width: 18,
@@ -399,13 +409,11 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                       a['message'] ?? '',
                       style: TextStyle(
                         fontSize: 13,
-                        color: isDark
-                            ? AppTheme.darkTextGray
-                            : AppTheme.textGray,
+                        color:
+                            isDark ? AppTheme.darkTextGray : AppTheme.textGray,
                       ),
                       maxLines: isExpanded ? null : 1,
-                      overflow:
-                          isExpanded ? null : TextOverflow.ellipsis,
+                      overflow: isExpanded ? null : TextOverflow.ellipsis,
                     ),
 
                     if (isExpanded) ...[
@@ -439,18 +447,25 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         AppStrings.get('location', lang),
                         a['location'] ?? 'Unknown',
                       ),
-                      if (a['maps_url'] != null && (a['maps_url'] as String).isNotEmpty)
+                      if (a['maps_url'] != null &&
+                          (a['maps_url'] as String).isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 6),
                           child: GestureDetector(
                             onTap: () => launchUrl(Uri.parse(a['maps_url'])),
                             child: Row(
                               children: [
-                                Icon(Icons.map, size: 14, color: isDark ? AppTheme.darkTextDim : AppTheme.textLight),
+                                Icon(Icons.map,
+                                    size: 14,
+                                    color: isDark
+                                        ? AppTheme.darkTextDim
+                                        : AppTheme.textLight),
                                 const SizedBox(width: 8),
                                 Text(
                                   '${AppStrings.get('location', lang)}: ',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600),
                                 ),
                                 Text(
                                   AppStrings.get('open_maps', lang),
@@ -491,7 +506,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                               const Color(0xFFFF5252),
                             ),
                           if (a['emergency_contact_name'] != null &&
-                              (a['emergency_contact_name'] as String).isNotEmpty)
+                              (a['emergency_contact_name'] as String)
+                                  .isNotEmpty)
                             _buildStatusChip(
                               Icons.person,
                               a['emergency_contact_name'],
@@ -678,9 +694,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                             n['patient_name'] ?? 'Unknown',
                             style: TextStyle(
                               fontSize: 15,
-                              fontWeight: isUnread
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
+                              fontWeight:
+                                  isUnread ? FontWeight.w800 : FontWeight.w600,
                               color: isDark
                                   ? AppTheme.darkTextLight
                                   : AppTheme.textDark,
@@ -735,7 +750,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        n['report'] ?? AppStrings.get('no_report_available', lang),
+                        n['report'] ??
+                            AppStrings.get('no_report_available', lang),
                         style: TextStyle(
                           fontSize: 13,
                           height: 1.5,

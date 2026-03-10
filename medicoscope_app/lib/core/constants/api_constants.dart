@@ -61,4 +61,7 @@ class ApiConstants {
 
   // Rewards (DB-synced)
   static const String rewards = '/rewards';
+
+  // Claimed Rewards
+  static const String claimedRewards = '/claimed-rewards';
 }

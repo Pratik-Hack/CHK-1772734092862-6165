@@ -12,6 +12,8 @@ const vitalsRoutes = require('./routes/vitals');
 const chatRoutes = require('./routes/chat');
 const mindspaceRoutes = require('./routes/mindspace');
 const rewardsRoutes = require('./routes/rewards');
+const mentalHealthRoutes = require('./routes/mental-health');
+const claimedRewardsRoutes = require('./routes/claimed-rewards');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,6 +37,8 @@ app.use('/api/vitals', vitalsRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/mindspace', mindspaceRoutes);
 app.use('/api/rewards', rewardsRoutes);
+app.use('/api/mental-health', mentalHealthRoutes);
+app.use('/api/claimed-rewards', claimedRewardsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

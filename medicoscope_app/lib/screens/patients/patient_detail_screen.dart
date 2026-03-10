@@ -15,7 +15,8 @@ import 'package:medicoscope/core/locale/app_strings.dart';
 class PatientDetailScreen extends StatefulWidget {
   final Map<String, dynamic> patient;
 
-  const PatientDetailScreen({Key? key, required this.patient}) : super(key: key);
+  const PatientDetailScreen({Key? key, required this.patient})
+      : super(key: key);
 
   @override
   State<PatientDetailScreen> createState() => _PatientDetailScreenState();
@@ -35,10 +36,14 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final doctorId = authProvider.user?.id ?? '';
     try {
-      final all = await MentalHealthService.getNotifications(doctorId: doctorId);
+      final all = await MentalHealthService.getNotifications(
+        doctorId: doctorId,
+        token: authProvider.token ?? '',
+      );
       final patientId = widget.patient['userId']?.toString() ?? '';
       setState(() {
-        _mentalHealthReports = all.where((n) => n['patient_id'] == patientId).toList();
+        _mentalHealthReports =
+            all.where((n) => n['patient_id'] == patientId).toList();
         _loadingReports = false;
       });
     } catch (_) {
@@ -117,12 +122,14 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       height: 44,
                       decoration: BoxDecoration(
                         color: isDark ? AppTheme.darkCard : Colors.white,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusSmall),
                         boxShadow: AppTheme.cardShadow,
                       ),
                       child: Icon(
                         Icons.arrow_back,
-                        color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                        color:
+                            isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                       ),
                     ),
                   ),
@@ -136,7 +143,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       children: [
                         CircleAvatar(
                           radius: 36,
-                          backgroundColor: AppTheme.primaryOrange.withOpacity(0.15),
+                          backgroundColor:
+                              AppTheme.primaryOrange.withOpacity(0.15),
                           child: Text(
                             name[0].toUpperCase(),
                             style: const TextStyle(
@@ -152,14 +160,18 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                            color: isDark
+                                ? AppTheme.darkTextLight
+                                : AppTheme.textDark,
                           ),
                         ),
                         Text(
                           code,
                           style: TextStyle(
                             fontSize: 14,
-                            color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                            color: isDark
+                                ? AppTheme.darkTextGray
+                                : AppTheme.textGray,
                           ),
                         ),
                         const SizedBox(height: AppTheme.spacingMedium),
@@ -172,8 +184,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                               _infoBadge('Blood: $bloodGroup', isDark),
                               const SizedBox(width: 8),
                             ],
-                            if (dob.isNotEmpty)
-                              _infoBadge('DOB: $dob', isDark),
+                            if (dob.isNotEmpty) _infoBadge('DOB: $dob', isDark),
                           ],
                         ),
 
@@ -189,7 +200,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryOrange.withOpacity(0.1),
+                                  color:
+                                      AppTheme.primaryOrange.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
@@ -219,11 +231,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                      color:
+                          isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                     ),
-                  )
-                      .animate()
-                      .fadeIn(delay: 300.ms, duration: 600.ms),
+                  ).animate().fadeIn(delay: 300.ms, duration: 600.ms),
 
                   const SizedBox(height: AppTheme.spacingMedium),
 
@@ -231,7 +242,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   DashboardTile(
                     icon: Icons.monitor_heart_outlined,
                     title: AppStrings.get('chest_xray', lang),
-                    description: AppStrings.format('analyze_for', lang, {'type': AppStrings.get('chest_xray', lang).toLowerCase(), 'name': name}),
+                    description: AppStrings.format('analyze_for', lang, {
+                      'type': AppStrings.get('chest_xray', lang).toLowerCase(),
+                      'name': name
+                    }),
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -253,7 +267,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   DashboardTile(
                     icon: Icons.psychology_outlined,
                     title: AppStrings.get('brain_mri', lang),
-                    description: AppStrings.format('analyze_for', lang, {'type': AppStrings.get('brain_mri', lang).toLowerCase(), 'name': name}),
+                    description: AppStrings.format('analyze_for', lang, {
+                      'type': AppStrings.get('brain_mri', lang).toLowerCase(),
+                      'name': name
+                    }),
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -275,7 +292,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   DashboardTile(
                     icon: Icons.favorite_outline,
                     title: AppStrings.get('heart_sound', lang),
-                    description: AppStrings.format('analyze_for', lang, {'type': AppStrings.get('heart_sound', lang).toLowerCase(), 'name': name}),
+                    description: AppStrings.format('analyze_for', lang, {
+                      'type': AppStrings.get('heart_sound', lang).toLowerCase(),
+                      'name': name
+                    }),
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -296,11 +316,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                      color:
+                          isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                     ),
-                  )
-                      .animate()
-                      .fadeIn(delay: 600.ms, duration: 600.ms),
+                  ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
 
                   const SizedBox(height: AppTheme.spacingMedium),
 
@@ -319,19 +338,20 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           AppStrings.get('no_mental_reports', lang),
                           style: TextStyle(
                             fontSize: 13,
-                            color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                            color: isDark
+                                ? AppTheme.darkTextGray
+                                : AppTheme.textGray,
                           ),
                         ),
                       ),
-                    )
-                        .animate()
-                        .fadeIn(delay: 700.ms, duration: 400.ms)
+                    ).animate().fadeIn(delay: 700.ms, duration: 400.ms)
                   else
                     ..._mentalHealthReports.asMap().entries.map((entry) {
                       final n = entry.value;
                       final urgency = n['urgency'] ?? 'Low';
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: AppTheme.spacingSmall),
+                        padding: const EdgeInsets.only(
+                            bottom: AppTheme.spacingSmall),
                         child: GlassCard(
                           padding: const EdgeInsets.all(AppTheme.spacingMedium),
                           child: Column(
@@ -345,7 +365,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: _urgencyColor(urgency).withOpacity(0.15),
+                                      color: _urgencyColor(urgency)
+                                          .withOpacity(0.15),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
@@ -359,10 +380,15 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                   ),
                                   const Spacer(),
                                   Text(
-                                    n['created_at']?.toString().substring(0, 10) ?? '',
+                                    n['created_at']
+                                            ?.toString()
+                                            .substring(0, 10) ??
+                                        '',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                                      color: isDark
+                                          ? AppTheme.darkTextDim
+                                          : AppTheme.textLight,
                                     ),
                                   ),
                                 ],
@@ -373,7 +399,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   height: 1.4,
-                                  color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                                  color: isDark
+                                      ? AppTheme.darkTextLight
+                                      : AppTheme.textDark,
                                 ),
                                 maxLines: 6,
                                 overflow: TextOverflow.ellipsis,
@@ -381,9 +409,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                             ],
                           ),
                         ),
-                      )
-                          .animate()
-                          .fadeIn(delay: (700 + entry.key * 100).ms, duration: 400.ms);
+                      ).animate().fadeIn(
+                          delay: (700 + entry.key * 100).ms, duration: 400.ms);
                     }),
 
                   const SizedBox(height: AppTheme.spacingXLarge),

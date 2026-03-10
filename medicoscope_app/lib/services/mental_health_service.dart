@@ -36,31 +36,24 @@ class MentalHealthService {
 
   static Future<List<Map<String, dynamic>>> getNotifications({
     required String doctorId,
+    required String token,
   }) async {
-    final url = Uri.parse(
-      '${ApiConstants.chatbotBaseUrl}${ApiConstants.mentalHealthNotifications}/$doctorId',
+    final api = ApiService(token: token);
+    final response = await api.get(
+      '${ApiConstants.mentalHealthNotifications}/$doctorId',
     );
-
-    final response = await http.get(url).timeout(const Duration(seconds: 30));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return List<Map<String, dynamic>>.from(data['notifications'] ?? []);
-    } else {
-      throw Exception('Failed to fetch notifications: ${response.statusCode}');
-    }
+    return List<Map<String, dynamic>>.from(response['notifications'] ?? []);
   }
 
-  static Future<void> markAsRead({required String notificationId}) async {
-    final url = Uri.parse(
-      '${ApiConstants.chatbotBaseUrl}${ApiConstants.mentalHealthNotifications}/$notificationId/read',
+  static Future<void> markAsRead({
+    required String notificationId,
+    required String token,
+  }) async {
+    final api = ApiService(token: token);
+    await api.put(
+      '${ApiConstants.mentalHealthNotifications}/$notificationId/read',
+      {},
     );
-
-    final response = await http.put(url).timeout(const Duration(seconds: 15));
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to mark as read: ${response.statusCode}');
-    }
   }
 
   static Future<String> redeemReward({
@@ -128,5 +121,34 @@ class MentalHealthService {
   static Future<void> deleteSession(String token, String sessionId) async {
     final api = ApiService(token: token);
     await api.delete('${ApiConstants.mindspaceSession}/$sessionId');
+  }
+
+  /// Save a claimed reward to DB
+  static Future<void> saveClaimedReward({
+    required String token,
+    required String rewardType,
+    required String title,
+    required String content,
+    required int coinsCost,
+  }) async {
+    try {
+      final api = ApiService(token: token);
+      await api.post(ApiConstants.claimedRewards, {
+        'rewardType': rewardType,
+        'title': title,
+        'content': content,
+        'coinsCost': coinsCost,
+      });
+    } catch (_) {
+      // Silently fail — reward was already displayed
+    }
+  }
+
+  /// Get claimed rewards history
+  static Future<List<Map<String, dynamic>>> getClaimedRewards(
+      String token) async {
+    final api = ApiService(token: token);
+    final response = await api.get(ApiConstants.claimedRewards);
+    return List<Map<String, dynamic>>.from(response['rewards'] ?? []);
   }
 }

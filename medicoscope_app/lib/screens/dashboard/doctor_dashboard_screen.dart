@@ -13,6 +13,7 @@ import 'package:medicoscope/screens/patients/patient_list_screen.dart';
 import 'package:medicoscope/screens/notifications/notifications_screen.dart';
 import 'package:medicoscope/screens/reports/doctor_reports_screen.dart';
 import 'package:medicoscope/services/vitals_service.dart';
+import 'package:medicoscope/services/mental_health_service.dart';
 import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
 
@@ -35,39 +36,56 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   Future<void> _fetchAlertCount() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final userId = authProvider.user?.id ?? '';
+    final token = authProvider.token ?? '';
     if (userId.isEmpty) return;
 
+    int totalUnread = 0;
+
+    // Vitals alerts
     try {
       final alerts = await VitalsService.getDoctorAlerts(doctorId: userId);
-      final unread = alerts.where((a) => !(a['read'] ?? false)).length;
-      if (mounted) {
-        setState(() => _unreadVitalsAlerts = unread);
-      }
+      totalUnread += alerts.where((a) => !(a['read'] ?? false)).length;
     } catch (_) {}
+
+    // Mental health notifications
+    try {
+      final notifications = await MentalHealthService.getNotifications(
+        doctorId: userId,
+        token: token,
+      );
+      totalUnread += notifications.where((n) => !(n['read'] ?? false)).length;
+    } catch (_) {}
+
+    if (mounted) {
+      setState(() => _unreadVitalsAlerts = totalUnread);
+    }
   }
 
   void _navigateTo(BuildContext context, Widget screen) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => screen,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.1),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOut,
-              )),
-              child: child,
-            ),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
-    ).then((_) => _fetchAlertCount());
+    Navigator.of(context)
+        .push(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => screen,
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.1),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOut,
+                  )),
+                  child: child,
+                ),
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
+          ),
+        )
+        .then((_) => _fetchAlertCount());
   }
 
   @override
@@ -101,7 +119,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   builder: (context) => IconButton(
                     icon: Icon(
                       Icons.menu,
-                      color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                      color:
+                          isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                     ),
                     onPressed: () => Scaffold.of(context).openDrawer(),
                   ),
@@ -113,9 +132,12 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       IconButton(
                         icon: Icon(
                           Icons.notifications_outlined,
-                          color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                          color: isDark
+                              ? AppTheme.darkTextLight
+                              : AppTheme.textDark,
                         ),
-                        onPressed: () => _navigateTo(context, const NotificationsScreen()),
+                        onPressed: () =>
+                            _navigateTo(context, const NotificationsScreen()),
                       ),
                       if (_unreadVitalsAlerts > 0)
                         Positioned(
@@ -133,7 +155,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                             ),
                             child: Center(
                               child: Text(
-                                _unreadVitalsAlerts > 9 ? '9+' : '$_unreadVitalsAlerts',
+                                _unreadVitalsAlerts > 9
+                                    ? '9+'
+                                    : '$_unreadVitalsAlerts',
                                 style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w800,
@@ -163,11 +187,16 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          AppStrings.format('dr_name', lang, {'name': user?.name.split(' ').last ?? AppStrings.get('doctor', lang)}),
+                          AppStrings.format('dr_name', lang, {
+                            'name': user?.name.split(' ').last ??
+                                AppStrings.get('doctor', lang)
+                          }),
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                            color: isDark
+                                ? AppTheme.darkTextLight
+                                : AppTheme.textDark,
                           ),
                         )
                             .animate()
@@ -178,11 +207,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                           AppStrings.get('medicoscope_dashboard', lang),
                           style: TextStyle(
                             fontSize: 15,
-                            color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                            color: isDark
+                                ? AppTheme.darkTextGray
+                                : AppTheme.textGray,
                           ),
-                        )
-                            .animate()
-                            .fadeIn(delay: 200.ms, duration: 600.ms),
+                        ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
                       ],
                     ),
                   ),
@@ -206,9 +235,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                               gradient: const LinearGradient(
                                 colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
                               ),
-                              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusSmall),
                             ),
-                            child: const Icon(Icons.qr_code, color: Colors.white, size: 24),
+                            child: const Icon(Icons.qr_code,
+                                color: Colors.white, size: 24),
                           ),
                           const SizedBox(width: AppTheme.spacingMedium),
                           Column(
@@ -218,7 +249,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                                 AppStrings.get('your_doctor_code', lang),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                                  color: isDark
+                                      ? AppTheme.darkTextGray
+                                      : AppTheme.textGray,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -239,7 +272,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                             textAlign: TextAlign.right,
                             style: TextStyle(
                               fontSize: 11,
-                              color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                              color: isDark
+                                  ? AppTheme.darkTextDim
+                                  : AppTheme.textLight,
                             ),
                           ),
                         ],
@@ -256,11 +291,10 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                        color:
+                            isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                       ),
-                    )
-                        .animate()
-                        .fadeIn(delay: 400.ms, duration: 600.ms),
+                    ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
 
                     const SizedBox(height: AppTheme.spacingMedium),
 
@@ -274,7 +308,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                         end: Alignment.bottomRight,
                         colors: [Color(0xFF4ECDC4), Color(0xFF44A08D)],
                       ),
-                      onTap: () => _navigateTo(context, const PatientListScreen()),
+                      onTap: () =>
+                          _navigateTo(context, const PatientListScreen()),
                       animationDelay: 500,
                     ),
 
@@ -328,7 +363,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                         end: Alignment.bottomRight,
                         colors: [Color(0xFFFF8C61), Color(0xFFFF6B35)],
                       ),
-                      onTap: () => _navigateTo(context, const DoctorReportsScreen()),
+                      onTap: () =>
+                          _navigateTo(context, const DoctorReportsScreen()),
                       animationDelay: 800,
                     ),
 

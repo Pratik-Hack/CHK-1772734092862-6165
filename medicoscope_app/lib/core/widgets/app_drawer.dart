@@ -10,6 +10,7 @@ import 'package:medicoscope/screens/linking/link_doctor_screen.dart';
 import 'package:medicoscope/screens/patients/patient_list_screen.dart';
 import 'package:medicoscope/screens/chat/chat_history_screen.dart';
 import 'package:medicoscope/screens/mental_health/mindspace_history_screen.dart';
+import 'package:medicoscope/screens/rewards/claimed_rewards_screen.dart';
 import 'package:medicoscope/screens/welcome/welcome_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -184,6 +185,14 @@ class AppDrawer extends StatelessWidget {
                 title: 'MindSpace History',
                 onTap: () =>
                     _navigateTo(context, const MindSpaceHistoryScreen()),
+              ),
+
+            if (authProvider.isPatient)
+              _buildMenuItem(
+                context,
+                icon: Icons.card_giftcard_outlined,
+                title: 'My Rewards',
+                onTap: () => _navigateTo(context, const ClaimedRewardsScreen()),
               ),
 
             const Divider(height: 32),

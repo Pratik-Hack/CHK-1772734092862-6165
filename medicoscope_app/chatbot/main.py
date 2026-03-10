@@ -48,7 +48,7 @@ llm_streaming = ChatGroq(
 )
 
 # ── Config ─────────────────────────────────────────────────────────────────
-BACKEND_URL = os.getenv("BACKEND_URL", "https://hearme-server.onrender.com/api")
+BACKEND_URL = os.getenv("BACKEND_URL", "https://medicoscope-server.onrender.com/api")
 
 # ── In-memory stores ────────────────────────────────────────────────────────
 session_histories: dict[str, list] = {}
@@ -333,6 +333,16 @@ Format as a professional clinical note. Respond in English."""
 async def redeem_reward(req: RewardRedeemRequest):
     lang_instruction = LANGUAGE_INSTRUCTIONS.get(req.language, LANGUAGE_INSTRUCTIONS["en"])
 
+    # Map Flutter reward types to prompt keys
+    type_map = {
+        "meditation": "guided_meditation",
+        "wellness_report": "weekly_wellness",
+        "health_tips": "premium_health_tips",
+        "guided_meditation": "guided_meditation",
+        "weekly_wellness": "weekly_wellness",
+        "premium_health_tips": "premium_health_tips",
+    }
+
     prompts = {
         "guided_meditation": f"""Create a personalized guided meditation script (5-7 minutes).
 Include breathing exercises, body scan, and visualization.
@@ -353,7 +363,8 @@ Make it actionable and motivating. {lang_instruction}""",
 Make each tip detailed and evidence-based. {lang_instruction}""",
     }
 
-    prompt = prompts.get(req.reward_type)
+    mapped_type = type_map.get(req.reward_type)
+    prompt = prompts.get(mapped_type) if mapped_type else None
     if not prompt:
         raise HTTPException(status_code=400, detail="Invalid reward type")
 
