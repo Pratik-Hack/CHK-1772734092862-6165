@@ -8,7 +8,7 @@ const router = express.Router();
 // POST /api/detections - save a detection result (no image, metadata only)
 router.post('/', auth, [
   body('className').notEmpty().withMessage('Class name is required'),
-  body('confidence').isFloat({ min: 0, max: 1 }).withMessage('Confidence must be between 0 and 1'),
+  body('confidence').isFloat({ min: 0 }).withMessage('Confidence must be a positive number'),
   body('category').isIn(['skin', 'chest', 'brain', 'heart_sound']).withMessage('Invalid category'),
 ], async (req, res) => {
   try {
