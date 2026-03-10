@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 export default function ScanPage() {
-  const [selectedCategory, setSelectedCategory] = useState(SCAN_CATEGORIES[0]);
+  const [selectedCategory, setSelectedCategory] = useState<(typeof SCAN_CATEGORIES)[number]>(SCAN_CATEGORIES[0]);
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -35,7 +35,7 @@ export default function ScanPage() {
         description: `Analysis of ${selectedCategory} image completed. AI detected patterns consistent with the identified condition.`,
         recommendations: ["Consult a specialist", "Schedule follow-up", "Monitor symptoms"],
       };
-      await detectionService.saveDetection({ patientId: user?.id || "", imageUrl: preview || "", category: selectedCategory, result: mockResult.condition, confidence: mockResult.confidence, description: mockResult.description });
+      await detectionService.saveDetection({ patientId: user?.id || "", category: selectedCategory, className: mockResult.condition, confidence: mockResult.confidence, description: mockResult.description, performedBy: user?.id || "" });
       sessionStorage.setItem("scanResult", JSON.stringify(mockResult));
       router.push("/patient/scan/results");
     } catch { toast.error("Analysis failed"); }
