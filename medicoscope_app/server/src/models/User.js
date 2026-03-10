@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['patient', 'doctor'],
+    enum: ['patient', 'doctor', 'admin'],
     required: [true, 'Role is required'],
   },
   uniqueCode: {

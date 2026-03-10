@@ -15,6 +15,7 @@ import 'package:medicoscope/screens/rewards/rewards_screen.dart';
 import 'package:medicoscope/screens/vitals/vitals_screen.dart';
 import 'package:medicoscope/screens/heart/heart_monitoring_screen.dart';
 import 'package:medicoscope/screens/alerts/patient_alerts_screen.dart';
+import 'package:medicoscope/screens/nearby_doctors/nearby_doctors_screen.dart';
 import 'package:medicoscope/core/providers/coins_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
@@ -344,6 +345,25 @@ class PatientDashboardScreen extends StatelessWidget {
                         const PatientAlertsScreen(),
                       ),
                       animationDelay: 800,
+                    ),
+
+                    const SizedBox(height: AppTheme.spacingMedium),
+
+                    // Find Nearby Doctors tile
+                    DashboardTile(
+                      icon: Icons.location_on_outlined,
+                      title: 'Find Nearby Doctors',
+                      description: 'Search specialists near your location',
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF11998E), Color(0xFF38EF7D)],
+                      ),
+                      onTap: () => _navigateTo(
+                        context,
+                        const NearbyDoctorsScreen(),
+                      ),
+                      animationDelay: 850,
                     ),
 
                     const SizedBox(height: AppTheme.spacingXLarge),

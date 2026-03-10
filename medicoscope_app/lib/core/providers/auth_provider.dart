@@ -17,6 +17,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isPatient => _user?.role == 'patient';
   bool get isDoctor => _user?.role == 'doctor';
+  bool get isAdmin => _user?.role == 'admin';
   String get userRole => _user?.role ?? '';
 
   AuthProvider() {

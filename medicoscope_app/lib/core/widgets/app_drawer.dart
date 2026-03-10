@@ -107,9 +107,11 @@ class AppDrawer extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      authProvider.isPatient
-                          ? AppStrings.get('patient', lang)
-                          : AppStrings.get('doctor', lang),
+                      authProvider.isAdmin
+                          ? 'Admin'
+                          : authProvider.isPatient
+                              ? AppStrings.get('patient', lang)
+                              : AppStrings.get('doctor', lang),
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white,

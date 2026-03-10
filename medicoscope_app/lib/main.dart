@@ -11,6 +11,7 @@ import 'package:medicoscope/core/providers/vitals_provider.dart';
 import 'package:medicoscope/screens/onboarding/user_guide_screen.dart';
 import 'package:medicoscope/screens/dashboard/patient_dashboard_screen.dart';
 import 'package:medicoscope/screens/dashboard/doctor_dashboard_screen.dart';
+import 'package:medicoscope/screens/admin/admin_dashboard_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -80,6 +81,7 @@ class MedicoScopeApp extends StatelessWidget {
             );
           }
           if (auth.isAuthenticated) {
+            if (auth.isAdmin) return const AdminDashboardScreen();
             return auth.isPatient
                 ? const PatientDashboardScreen()
                 : const DoctorDashboardScreen();

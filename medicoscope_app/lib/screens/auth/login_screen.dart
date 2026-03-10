@@ -9,6 +9,7 @@ import 'package:medicoscope/core/widgets/theme_toggle_button.dart';
 import 'package:medicoscope/core/providers/auth_provider.dart';
 import 'package:medicoscope/screens/dashboard/patient_dashboard_screen.dart';
 import 'package:medicoscope/screens/dashboard/doctor_dashboard_screen.dart';
+import 'package:medicoscope/screens/admin/admin_dashboard_screen.dart';
 import 'package:medicoscope/services/api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
@@ -48,9 +49,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      final screen = authProvider.isPatient
-          ? const PatientDashboardScreen()
-          : const DoctorDashboardScreen();
+      final Widget screen;
+      if (authProvider.isAdmin) {
+        screen = const AdminDashboardScreen();
+      } else if (authProvider.isPatient) {
+        screen = const PatientDashboardScreen();
+      } else {
+        screen = const DoctorDashboardScreen();
+      }
 
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(

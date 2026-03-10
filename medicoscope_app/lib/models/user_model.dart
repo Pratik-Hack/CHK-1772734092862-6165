@@ -19,6 +19,7 @@ class UserModel {
 
   bool get isPatient => role == 'patient';
   bool get isDoctor => role == 'doctor';
+  bool get isAdmin => role == 'admin';
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(

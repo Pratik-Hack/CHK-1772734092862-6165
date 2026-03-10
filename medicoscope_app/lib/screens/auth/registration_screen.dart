@@ -9,6 +9,7 @@ import 'package:medicoscope/core/widgets/theme_toggle_button.dart';
 import 'package:medicoscope/core/providers/auth_provider.dart';
 import 'package:medicoscope/screens/dashboard/patient_dashboard_screen.dart';
 import 'package:medicoscope/screens/dashboard/doctor_dashboard_screen.dart';
+import 'package:medicoscope/screens/admin/admin_dashboard_screen.dart';
 import 'package:medicoscope/services/api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
@@ -116,9 +117,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       if (!mounted) return;
 
-      final screen = authProvider.isPatient
-          ? const PatientDashboardScreen()
-          : const DoctorDashboardScreen();
+      final Widget screen;
+      if (authProvider.isAdmin) {
+        screen = const AdminDashboardScreen();
+      } else if (authProvider.isPatient) {
+        screen = const PatientDashboardScreen();
+      } else {
+        screen = const DoctorDashboardScreen();
+      }
 
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
@@ -149,6 +155,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final isDark = themeProvider.isDarkMode;
     final lang = Provider.of<LocaleProvider>(context).languageCode;
     final isPatient = widget.role == 'patient';
+    final isDoctor = widget.role == 'doctor';
+    final isAdmin = widget.role == 'admin';
 
     return Scaffold(
       body: Container(
@@ -218,21 +226,28 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            gradient: isPatient
+                            gradient: isAdmin
                                 ? const LinearGradient(colors: [
-                                    Color(0xFF4ECDC4),
-                                    Color(0xFF44A08D)
+                                    Color(0xFFFF8C61),
+                                    Color(0xFFFF6B35)
                                   ])
-                                : const LinearGradient(colors: [
-                                    Color(0xFF667EEA),
-                                    Color(0xFF764BA2)
-                                  ]),
+                                : isPatient
+                                    ? const LinearGradient(colors: [
+                                        Color(0xFF4ECDC4),
+                                        Color(0xFF44A08D)
+                                      ])
+                                    : const LinearGradient(colors: [
+                                        Color(0xFF667EEA),
+                                        Color(0xFF764BA2)
+                                      ]),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            isPatient
-                                ? AppStrings.get('patient', lang)
-                                : AppStrings.get('doctor', lang),
+                            isAdmin
+                                ? 'Admin'
+                                : isPatient
+                                    ? AppStrings.get('patient', lang)
+                                    : AppStrings.get('doctor', lang),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,
@@ -339,7 +354,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                         // --- Role-Specific Fields ---
                         if (isPatient) ..._buildPatientFields(isDark, lang),
-                        if (!isPatient) ..._buildDoctorFields(isDark, lang),
+                        if (isDoctor) ..._buildDoctorFields(isDark, lang),
 
                         const SizedBox(height: AppTheme.spacingXLarge),
 

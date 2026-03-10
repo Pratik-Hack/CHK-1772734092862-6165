@@ -64,4 +64,14 @@ class ApiConstants {
 
   // Claimed Rewards
   static const String claimedRewards = '/claimed-rewards';
+
+  // Admin
+  static const String adminPatients = '/admin/patients';
+  static const String adminDoctors = '/admin/doctors';
+  static const String adminStats = '/admin/stats';
+  static const String adminNearbyDoctors = '/admin/nearby-doctors';
+
+  // Nearby Doctors (patient search)
+  static const String nearbyDoctorsSearch = '/nearby-doctors/search';
+  static const String nearbyDoctorsSpecializations = '/nearby-doctors/specializations';
 }
