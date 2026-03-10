@@ -344,7 +344,6 @@ class AppStrings {
       'delete': 'Delete',
       'delete_alert': 'Delete Alert',
       'delete_alert_confirm': 'Are you sure you want to delete this alert?',
-      'cancel': 'Cancel',
       'alert_deleted': 'Alert deleted',
 
       // Patient Detail - Alerts
