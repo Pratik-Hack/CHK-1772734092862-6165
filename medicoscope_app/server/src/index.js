@@ -9,6 +9,9 @@ const doctorRoutes = require('./routes/doctors');
 const patientRoutes = require('./routes/patients');
 const detectionRoutes = require('./routes/detections');
 const vitalsRoutes = require('./routes/vitals');
+const chatRoutes = require('./routes/chat');
+const mindspaceRoutes = require('./routes/mindspace');
+const rewardsRoutes = require('./routes/rewards');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,6 +32,9 @@ app.use('/api/doctors', doctorRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/detections', detectionRoutes);
 app.use('/api/vitals', vitalsRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/mindspace', mindspaceRoutes);
+app.use('/api/rewards', rewardsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

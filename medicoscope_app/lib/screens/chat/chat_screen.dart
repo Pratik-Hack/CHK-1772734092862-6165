@@ -26,7 +26,8 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     // Add initial greeting
     _messages.add(_ChatMessage(
-      text: "Hello! I'm your MedicoScope medical assistant. I can help you understand your symptoms, provide general health guidance, and advise when to see a doctor. How can I help you today?",
+      text:
+          "Hello! I'm your MedicoScope medical assistant. I can help you understand your symptoms, provide general health guidance, and advise when to see a doctor. How can I help you today?",
       isUser: false,
     ));
   }
@@ -81,6 +82,16 @@ class _ChatScreenState extends State<ChatScreen> {
         _isLoading = false;
       });
 
+      // Save to DB
+      if (authProvider.token != null) {
+        ChatService.saveMessageToDb(
+          token: authProvider.token!,
+          sessionId: sessionId,
+          userMessage: text,
+          assistantMessage: response,
+        );
+      }
+
       // Award chat coins (max once per day)
       final coinsProvider = Provider.of<CoinsProvider>(context, listen: false);
       final earned = await coinsProvider.addChatCoins();
@@ -95,7 +106,8 @@ class _ChatScreenState extends State<ChatScreen> {
             backgroundColor: const Color(0xFFFFA000),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 2),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -156,7 +168,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.arrow_back_ios),
-                      color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                      color:
+                          isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                     ),
                     Container(
                       width: 40,
@@ -165,7 +178,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         gradient: const LinearGradient(
                           colors: [Color(0xFF4ECDC4), Color(0xFF44A08D)],
                         ),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusSmall),
                       ),
                       child: const Icon(
                         Icons.smart_toy_outlined,
@@ -183,14 +197,18 @@ class _ChatScreenState extends State<ChatScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                              color: isDark
+                                  ? AppTheme.darkTextLight
+                                  : AppTheme.textDark,
                             ),
                           ),
                           Text(
                             'AI-powered health guidance',
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                              color: isDark
+                                  ? AppTheme.darkTextGray
+                                  : AppTheme.textGray,
                             ),
                           ),
                         ],
@@ -242,19 +260,24 @@ class _ChatScreenState extends State<ChatScreen> {
                           color: isDark
                               ? Colors.white.withOpacity(0.08)
                               : Colors.grey.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusLarge),
                         ),
                         child: TextField(
                           controller: _controller,
                           textInputAction: TextInputAction.send,
                           onSubmitted: (_) => _sendMessage(),
                           style: TextStyle(
-                            color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                            color: isDark
+                                ? AppTheme.darkTextLight
+                                : AppTheme.textDark,
                           ),
                           decoration: InputDecoration(
                             hintText: 'Describe your symptoms...',
                             hintStyle: TextStyle(
-                              color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                              color: isDark
+                                  ? AppTheme.darkTextDim
+                                  : AppTheme.textLight,
                               fontSize: 14,
                             ),
                             border: InputBorder.none,
@@ -272,7 +295,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         gradient: const LinearGradient(
                           colors: [Color(0xFF4ECDC4), Color(0xFF44A08D)],
                         ),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMedium),
                       ),
                       child: IconButton(
                         onPressed: _isLoading ? null : _sendMessage,

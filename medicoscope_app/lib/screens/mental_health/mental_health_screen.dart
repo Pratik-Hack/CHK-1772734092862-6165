@@ -64,7 +64,8 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
       final response = await api.get(ApiConstants.patientDoctor);
       if (response['doctor'] != null) {
         setState(() {
-          _linkedDoctorId = response['doctor']['_id'] ?? response['doctor']['id'] ?? '';
+          _linkedDoctorId =
+              response['doctor']['_id'] ?? response['doctor']['id'] ?? '';
         });
       }
     } catch (_) {
@@ -85,7 +86,8 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
     if (!await _recorder.hasPermission()) return;
 
     final dir = await getTemporaryDirectory();
-    final path = '${dir.path}/mind_checkin_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    final path =
+        '${dir.path}/mind_checkin_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
     await _recorder.start(
       const RecordConfig(encoder: AudioEncoder.aacLc, numChannels: 1),
@@ -143,7 +145,8 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
       _hourglassController.stop();
       _hourglassController.reset();
       setState(() {
-        _responseText = result['user_message'] as String? ?? 'Thank you for sharing.';
+        _responseText =
+            result['user_message'] as String? ?? 'Thank you for sharing.';
         _coinsEarned = coins;
         _isProcessing = false;
       });
@@ -156,11 +159,25 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
           _showCoins = true;
         });
       }
+
+      // Save session to DB
+      if (authProvider.token != null) {
+        MentalHealthService.saveSessionToDb(
+          token: authProvider.token!,
+          transcript: result['transcript'] as String? ?? '',
+          userMessage: result['user_message'] as String? ?? '',
+          doctorReport: result['doctor_report'] as String?,
+          urgency: result['urgency'] as String? ?? 'low',
+          coinsEarned: coins,
+          doctorId: _linkedDoctorId.isNotEmpty ? _linkedDoctorId : null,
+        );
+      }
     } catch (e) {
       _hourglassController.stop();
       _hourglassController.reset();
       setState(() {
-        _responseText = AppStrings.get('something_went_wrong', Provider.of<LocaleProvider>(context, listen: false).languageCode);
+        _responseText = AppStrings.get('something_went_wrong',
+            Provider.of<LocaleProvider>(context, listen: false).languageCode);
         _isProcessing = false;
       });
     }
@@ -195,7 +212,8 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.arrow_back_ios),
-                      color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                      color:
+                          isDark ? AppTheme.darkTextLight : AppTheme.textDark,
                     ),
                     Expanded(
                       child: Column(
@@ -206,14 +224,18 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                              color: isDark
+                                  ? AppTheme.darkTextLight
+                                  : AppTheme.textDark,
                             ),
                           ),
                           Text(
                             AppStrings.get('share_your_day', lang),
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                              color: isDark
+                                  ? AppTheme.darkTextGray
+                                  : AppTheme.textGray,
                             ),
                           ),
                         ],
@@ -222,10 +244,12 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                     // Coins display — tappable to open rewards
                     GestureDetector(
                       onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const RewardsScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const RewardsScreen()),
                       ),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
@@ -235,7 +259,8 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.stars_rounded, color: Colors.white, size: 18),
+                            const Icon(Icons.stars_rounded,
+                                color: Colors.white, size: 18),
                             const SizedBox(width: 4),
                             Text(
                               '${coinsProvider.totalCoins}',
@@ -271,7 +296,9 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                          color: isDark
+                              ? AppTheme.darkTextLight
+                              : AppTheme.textDark,
                         ),
                       ).animate().fadeIn(duration: 400.ms),
 
@@ -285,7 +312,9 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                                 : AppStrings.get('tap_mic', lang),
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                          color: isDark
+                              ? AppTheme.darkTextGray
+                              : AppTheme.textGray,
                         ),
                       ),
 
@@ -302,7 +331,8 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                           animation: _pulseController,
                           builder: (context, child) {
                             final scale = _isRecording
-                                ? 1.0 + 0.08 * sin(_pulseController.value * 2 * pi)
+                                ? 1.0 +
+                                    0.08 * sin(_pulseController.value * 2 * pi)
                                 : 1.0;
                             return Transform.scale(
                               scale: scale,
@@ -318,10 +348,19 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: _isRecording
-                                    ? [const Color(0xFFFF5252), const Color(0xFFD32F2F)]
+                                    ? [
+                                        const Color(0xFFFF5252),
+                                        const Color(0xFFD32F2F)
+                                      ]
                                     : _isProcessing
-                                        ? [const Color(0xFF9E9E9E), const Color(0xFF757575)]
-                                        : [const Color(0xFF7C4DFF), const Color(0xFF536DFE)],
+                                        ? [
+                                            const Color(0xFF9E9E9E),
+                                            const Color(0xFF757575)
+                                          ]
+                                        : [
+                                            const Color(0xFF7C4DFF),
+                                            const Color(0xFF536DFE)
+                                          ],
                               ),
                               boxShadow: [
                                 BoxShadow(
@@ -363,7 +402,9 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.w300,
-                            color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                            color: isDark
+                                ? AppTheme.darkTextLight
+                                : AppTheme.textDark,
                           ),
                         ).animate().fadeIn(),
 
@@ -377,12 +418,17 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                               style: TextStyle(
                                 fontSize: 13,
                                 fontStyle: FontStyle.italic,
-                                color: isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                                color: isDark
+                                    ? AppTheme.darkTextGray
+                                    : AppTheme.textGray,
                               ),
                             ).animate(onPlay: (c) => c.repeat()).shimmer(
-                              duration: 1500.ms,
-                              color: isDark ? Colors.white24 : const Color(0xFF7C4DFF).withOpacity(0.3),
-                            ),
+                                  duration: 1500.ms,
+                                  color: isDark
+                                      ? Colors.white24
+                                      : const Color(0xFF7C4DFF)
+                                          .withOpacity(0.3),
+                                ),
                           ],
                         ),
 
@@ -391,12 +437,14 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                       // Coin animation
                       if (_showCoins && _coinsEarned > 0)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
                             ),
-                            borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusLarge),
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(0xFFFFD700).withOpacity(0.3),
@@ -408,10 +456,12 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.stars_rounded, color: Colors.white, size: 24),
+                              const Icon(Icons.stars_rounded,
+                                  color: Colors.white, size: 24),
                               const SizedBox(width: 8),
                               Text(
-                                AppStrings.format('coins_earned', lang, {'coins': '$_coinsEarned'}),
+                                AppStrings.format('coins_earned', lang,
+                                    {'coins': '$_coinsEarned'}),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
@@ -423,7 +473,9 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                         )
                             .animate()
                             .fadeIn(duration: 400.ms)
-                            .scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1))
+                            .scale(
+                                begin: const Offset(0.5, 0.5),
+                                end: const Offset(1, 1))
                             .then()
                             .shimmer(duration: 1200.ms, color: Colors.white38),
 
@@ -444,7 +496,10 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                                     height: 32,
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFF7C4DFF), Color(0xFF536DFE)],
+                                        colors: [
+                                          Color(0xFF7C4DFF),
+                                          Color(0xFF536DFE)
+                                        ],
                                       ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -460,7 +515,9 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
-                                      color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                                      color: isDark
+                                          ? AppTheme.darkTextLight
+                                          : AppTheme.textDark,
                                     ),
                                   ),
                                 ],
@@ -471,7 +528,9 @@ class _MentalHealthScreenState extends State<MentalHealthScreen>
                                 style: TextStyle(
                                   fontSize: 14,
                                   height: 1.5,
-                                  color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
+                                  color: isDark
+                                      ? AppTheme.darkTextLight
+                                      : AppTheme.textDark,
                                 ),
                               ),
                             ],

@@ -48,4 +48,17 @@ class ApiConstants {
 
   // Medical Summary (for chatbot context)
   static const String patientMedicalSummary = '/patients/medical-summary';
+
+  // Chat History
+  static const String chatMessage = '/chat/message';
+  static const String chatHistory = '/chat/history';
+  static const String chatSession = '/chat/session';
+
+  // MindSpace History
+  static const String mindspaceSession = '/mindspace/session';
+  static const String mindspaceHistory = '/mindspace/history';
+  static const String mindspaceDoctor = '/mindspace/doctor';
+
+  // Rewards (DB-synced)
+  static const String rewards = '/rewards';
 }

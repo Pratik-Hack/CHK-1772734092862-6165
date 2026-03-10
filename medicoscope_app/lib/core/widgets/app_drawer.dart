@@ -8,6 +8,8 @@ import 'package:medicoscope/screens/profile/profile_screen.dart';
 import 'package:medicoscope/screens/linking/my_code_screen.dart';
 import 'package:medicoscope/screens/linking/link_doctor_screen.dart';
 import 'package:medicoscope/screens/patients/patient_list_screen.dart';
+import 'package:medicoscope/screens/chat/chat_history_screen.dart';
+import 'package:medicoscope/screens/mental_health/mindspace_history_screen.dart';
 import 'package:medicoscope/screens/welcome/welcome_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -47,7 +49,8 @@ class AppDrawer extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Drawer(
-      backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.backgroundLight,
+      backgroundColor:
+          isDark ? AppTheme.darkBackground : AppTheme.backgroundLight,
       child: SafeArea(
         child: Column(
           children: [
@@ -96,13 +99,16 @@ class AppDrawer extends StatelessWidget {
                   const SizedBox(height: AppTheme.spacingSmall),
                   // Role badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      authProvider.isPatient ? AppStrings.get('patient', lang) : AppStrings.get('doctor', lang),
+                      authProvider.isPatient
+                          ? AppStrings.get('patient', lang)
+                          : AppStrings.get('doctor', lang),
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white,
@@ -146,6 +152,38 @@ class AppDrawer extends StatelessWidget {
                 icon: Icons.people_outlined,
                 title: AppStrings.get('my_patients', lang),
                 onTap: () => _navigateTo(context, const PatientListScreen()),
+              ),
+
+            const Divider(height: 32),
+
+            // History section
+            Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 4),
+              child: Text(
+                'History',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppTheme.darkTextDim : AppTheme.textLight,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+
+            _buildMenuItem(
+              context,
+              icon: Icons.chat_outlined,
+              title: 'Chat History',
+              onTap: () => _navigateTo(context, const ChatHistoryScreen()),
+            ),
+
+            if (authProvider.isPatient)
+              _buildMenuItem(
+                context,
+                icon: Icons.spa_outlined,
+                title: 'MindSpace History',
+                onTap: () =>
+                    _navigateTo(context, const MindSpaceHistoryScreen()),
               ),
 
             const Divider(height: 32),
@@ -207,9 +245,7 @@ class AppDrawer extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isDestructive
-            ? Colors.red.shade400
-            : AppTheme.primaryOrange,
+        color: isDestructive ? Colors.red.shade400 : AppTheme.primaryOrange,
         size: 24,
       ),
       title: Text(

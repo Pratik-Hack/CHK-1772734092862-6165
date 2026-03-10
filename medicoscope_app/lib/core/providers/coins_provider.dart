@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:medicoscope/services/api_service.dart';
+import 'package:medicoscope/core/constants/api_constants.dart';
 
 class CoinsProvider extends ChangeNotifier {
   int _totalCoins = 0;
@@ -21,6 +23,7 @@ class CoinsProvider extends ChangeNotifier {
   String? _lastChatRewardDate;
   bool _streak3Claimed = false;
   bool _streak7Claimed = false;
+  String? _authToken;
 
   /// Whether Mind Space check-in was done today
   bool get checkedInToday {
@@ -111,6 +114,7 @@ class CoinsProvider extends ChangeNotifier {
     _lastEarned = totalEarned;
     notifyListeners();
     await _persist();
+    _syncToServer();
     return totalEarned;
   }
 
@@ -127,6 +131,7 @@ class CoinsProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('mind_coins', _totalCoins);
     await prefs.setString('mind_last_chat_reward', today);
+    _syncToServer();
     return 5;
   }
 
@@ -136,6 +141,7 @@ class CoinsProvider extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('mind_coins', _totalCoins);
+    _syncToServer();
     return true;
   }
 
@@ -148,5 +154,66 @@ class CoinsProvider extends ChangeNotifier {
     await prefs.setString('mind_last_session', _lastSessionDate!);
     await prefs.setBool('mind_streak3_claimed', _streak3Claimed);
     await prefs.setBool('mind_streak7_claimed', _streak7Claimed);
+  }
+
+  /// Set auth token for DB sync
+  void setToken(String? token) {
+    if (_authToken == token) return;
+    _authToken = token;
+    if (token != null) {
+      _loadFromServer();
+    }
+  }
+
+  /// Load rewards from server DB
+  Future<void> _loadFromServer() async {
+    if (_authToken == null) return;
+    try {
+      final api = ApiService(token: _authToken);
+      final response = await api.get(ApiConstants.rewards);
+      final rewards = response['rewards'] as Map<String, dynamic>;
+
+      final serverCoins = rewards['totalCoins'] as int? ?? 0;
+      // Use whichever is higher (local or server) to avoid data loss
+      if (serverCoins > _totalCoins) {
+        _totalCoins = serverCoins;
+        _totalSessions = rewards['totalSessions'] as int? ?? _totalSessions;
+        _currentStreak = rewards['currentStreak'] as int? ?? _currentStreak;
+        _longestStreak = rewards['longestStreak'] as int? ?? _longestStreak;
+        _lastSessionDate =
+            rewards['lastSessionDate'] as String? ?? _lastSessionDate;
+        _lastChatRewardDate =
+            rewards['lastChatRewardDate'] as String? ?? _lastChatRewardDate;
+        _streak3Claimed = rewards['streak3Claimed'] as bool? ?? _streak3Claimed;
+        _streak7Claimed = rewards['streak7Claimed'] as bool? ?? _streak7Claimed;
+        notifyListeners();
+        await _persist();
+      } else if (_totalCoins > serverCoins) {
+        // Local is ahead, push to server
+        _syncToServer();
+      }
+    } catch (_) {
+      // Server unavailable, continue with local data
+    }
+  }
+
+  /// Sync current rewards to server DB
+  Future<void> _syncToServer() async {
+    if (_authToken == null) return;
+    try {
+      final api = ApiService(token: _authToken);
+      await api.put(ApiConstants.rewards, {
+        'totalCoins': _totalCoins,
+        'totalSessions': _totalSessions,
+        'currentStreak': _currentStreak,
+        'longestStreak': _longestStreak,
+        'lastSessionDate': _lastSessionDate,
+        'lastChatRewardDate': _lastChatRewardDate,
+        'streak3Claimed': _streak3Claimed,
+        'streak7Claimed': _streak7Claimed,
+      });
+    } catch (_) {
+      // Silently fail — local data is primary
+    }
   }
 }

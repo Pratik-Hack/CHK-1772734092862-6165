@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:medicoscope/core/constants/api_constants.dart';
+import 'package:medicoscope/services/api_service.dart';
 
 class ChatService {
   /// Non-streaming fallback — waits for full response.
@@ -55,9 +56,8 @@ class ChatService {
 
     final client = http.Client();
     try {
-      final response = await client
-          .send(request)
-          .timeout(const Duration(seconds: 30));
+      final response =
+          await client.send(request).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 503) {
         throw Exception('Chatbot is warming up. Please try again in a moment.');
@@ -86,8 +86,7 @@ class ChatService {
                 yield parsed['token'] as String;
               }
             } catch (e) {
-              if (e is Exception &&
-                  e.toString().contains('Chatbot')) {
+              if (e is Exception && e.toString().contains('Chatbot')) {
                 rethrow;
               }
               // Skip malformed SSE lines
@@ -98,5 +97,45 @@ class ChatService {
     } finally {
       client.close();
     }
+  }
+
+  /// Save chat message pair to DB
+  static Future<void> saveMessageToDb({
+    required String token,
+    required String sessionId,
+    required String userMessage,
+    required String assistantMessage,
+  }) async {
+    try {
+      final api = ApiService(token: token);
+      await api.post(ApiConstants.chatMessage, {
+        'sessionId': sessionId,
+        'userMessage': userMessage,
+        'assistantMessage': assistantMessage,
+      });
+    } catch (_) {
+      // Silently fail — don't block chat UX
+    }
+  }
+
+  /// Get chat history list
+  static Future<List<Map<String, dynamic>>> getChatHistory(String token) async {
+    final api = ApiService(token: token);
+    final response = await api.get(ApiConstants.chatHistory);
+    return List<Map<String, dynamic>>.from(response['sessions'] ?? []);
+  }
+
+  /// Get full chat session
+  static Future<Map<String, dynamic>> getChatSession(
+      String token, String sessionId) async {
+    final api = ApiService(token: token);
+    final response = await api.get('${ApiConstants.chatSession}/$sessionId');
+    return response['chat'] as Map<String, dynamic>;
+  }
+
+  /// Delete a chat session
+  static Future<void> deleteChatSession(String token, String sessionId) async {
+    final api = ApiService(token: token);
+    await api.delete('${ApiConstants.chatSession}/$sessionId');
   }
 }

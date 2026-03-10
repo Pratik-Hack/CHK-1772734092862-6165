@@ -9,6 +9,8 @@ import 'package:medicoscope/core/providers/auth_provider.dart';
 import 'package:medicoscope/core/providers/coins_provider.dart';
 import 'package:medicoscope/core/providers/vitals_provider.dart';
 import 'package:medicoscope/screens/onboarding/user_guide_screen.dart';
+import 'package:medicoscope/screens/dashboard/patient_dashboard_screen.dart';
+import 'package:medicoscope/screens/dashboard/doctor_dashboard_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,7 +68,25 @@ class MedicoScopeApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const UserGuideScreen(),
+      home: Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          // Sync auth token to CoinsProvider for DB rewards sync
+          final coins = Provider.of<CoinsProvider>(context, listen: false);
+          coins.setToken(auth.token);
+
+          if (auth.isLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (auth.isAuthenticated) {
+            return auth.isPatient
+                ? const PatientDashboardScreen()
+                : const DoctorDashboardScreen();
+          }
+          return const UserGuideScreen();
+        },
+      ),
     );
   }
 }

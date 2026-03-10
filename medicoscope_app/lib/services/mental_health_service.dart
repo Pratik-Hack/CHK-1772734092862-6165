@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:medicoscope/core/constants/api_constants.dart';
+import 'package:medicoscope/services/api_service.dart';
 
 class MentalHealthService {
   static Future<Map<String, dynamic>> uploadAudio({
@@ -20,8 +21,8 @@ class MentalHealthService {
       ..files.add(await http.MultipartFile.fromPath('audio', filePath));
 
     final streamedResponse = await request.send().timeout(
-      const Duration(seconds: 120),
-    );
+          const Duration(seconds: 120),
+        );
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200) {
@@ -70,14 +71,16 @@ class MentalHealthService {
       '${ApiConstants.chatbotBaseUrl}${ApiConstants.rewardsRedeem}',
     );
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'reward_type': rewardType,
-        'patient_name': patientName,
-      }),
-    ).timeout(const Duration(seconds: 60));
+    final response = await http
+        .post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'reward_type': rewardType,
+            'patient_name': patientName,
+          }),
+        )
+        .timeout(const Duration(seconds: 60));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -87,5 +90,43 @@ class MentalHealthService {
     } else {
       throw Exception('Failed to generate reward: ${response.statusCode}');
     }
+  }
+
+  /// Save mindspace session to DB
+  static Future<void> saveSessionToDb({
+    required String token,
+    required String transcript,
+    required String userMessage,
+    String? doctorReport,
+    String urgency = 'low',
+    int coinsEarned = 0,
+    String? doctorId,
+  }) async {
+    try {
+      final api = ApiService(token: token);
+      await api.post(ApiConstants.mindspaceSession, {
+        'transcript': transcript,
+        'userMessage': userMessage,
+        'doctorReport': doctorReport,
+        'urgency': urgency,
+        'coinsEarned': coinsEarned,
+        'doctorId': doctorId,
+      });
+    } catch (_) {
+      // Silently fail
+    }
+  }
+
+  /// Get mindspace history for patient
+  static Future<List<Map<String, dynamic>>> getHistory(String token) async {
+    final api = ApiService(token: token);
+    final response = await api.get(ApiConstants.mindspaceHistory);
+    return List<Map<String, dynamic>>.from(response['sessions'] ?? []);
+  }
+
+  /// Delete a mindspace session
+  static Future<void> deleteSession(String token, String sessionId) async {
+    final api = ApiService(token: token);
+    await api.delete('${ApiConstants.mindspaceSession}/$sessionId');
   }
 }

@@ -40,6 +40,14 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  Future<Map<String, dynamic>> delete(String endpoint) async {
+    final response = await http.delete(
+      Uri.parse('${ApiConstants.baseUrl}$endpoint'),
+      headers: _headers,
+    );
+    return _handleResponse(response);
+  }
+
   Map<String, dynamic> _handleResponse(http.Response response) {
     final body = jsonDecode(response.body);
 
