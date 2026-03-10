@@ -41,38 +41,51 @@ class _NearbyDoctorsScreenState extends State<NearbyDoctorsScreen> {
     });
 
     try {
+      // Check if location services are enabled, prompt to enable if not
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        setState(() {
-          _locationError = true;
-          _errorMessage = 'Location services are disabled. Please enable them.';
-          _isLoading = false;
-        });
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          setState(() {
-            _locationError = true;
-            _errorMessage = 'Location permission denied.';
-            _isLoading = false;
-          });
+        // Open location settings directly
+        await Geolocator.openLocationSettings();
+        // Re-check after user returns
+        serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          if (mounted) {
+            setState(() {
+              _locationError = true;
+              _errorMessage = 'Location services are disabled. Please enable them to find nearby doctors.';
+              _isLoading = false;
+            });
+          }
           return;
         }
       }
 
+      // Directly request permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      // If permanently denied, open app settings
       if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          _locationError = true;
-          _errorMessage = 'Location permission permanently denied. Please enable in settings.';
-          _isLoading = false;
-        });
+        await Geolocator.openAppSettings();
+        // Re-check after user returns from settings
+        permission = await Geolocator.checkPermission();
+      }
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          setState(() {
+            _locationError = true;
+            _errorMessage = 'Location permission is required to find nearby doctors.';
+            _isLoading = false;
+          });
+        }
         return;
       }
 
+      // Get current position
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );

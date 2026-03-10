@@ -165,26 +165,6 @@ class RoleSelectionScreen extends StatelessWidget {
                         delay: 700,
                       ),
 
-                      const SizedBox(height: AppTheme.spacingMedium),
-
-                      // Admin Card
-                      _buildRoleCard(
-                        context,
-                        icon: Icons.admin_panel_settings_outlined,
-                        title: 'I\'m an Admin',
-                        description: 'Manage doctors, patients & nearby services',
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFFFF8C61), Color(0xFFFF6B35)],
-                        ),
-                        onTap: () => _navigateTo(
-                          context,
-                          const RegistrationScreen(role: 'admin'),
-                        ),
-                        delay: 900,
-                      ),
-
                       const SizedBox(height: AppTheme.spacingXXLarge),
 
                       // Login link
