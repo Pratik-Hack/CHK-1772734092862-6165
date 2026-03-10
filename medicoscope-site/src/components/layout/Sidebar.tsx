@@ -10,6 +10,8 @@ interface SidebarItem { label: string; href: string; icon: string; }
 
 const patientLinks: SidebarItem[] = [
   { label: "Dashboard", href: "/patient/dashboard", icon: "🏠" },
+  { label: "Vital Alerts", href: "/patient/alerts", icon: "🔔" },
+  { label: "Nearby Doctors", href: "/patient/nearby-doctors", icon: "📍" },
   { label: "Profile", href: "/patient/profile", icon: "👤" },
   { label: "My Code", href: "/patient/my-code", icon: "📱" },
   { label: "Link Doctor", href: "/patient/link-doctor", icon: "🔗" },

@@ -3,6 +3,7 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useAuthStore } from "@/stores/authStore";
 import { vitalsService } from "@/services/vitals.service";
+import { mentalHealthService } from "@/services/mental-health.service";
 import { doctorService } from "@/services/doctor.service";
 import { usePolling } from "@/hooks/usePolling";
 import Link from "next/link";
@@ -17,20 +18,31 @@ export default function DoctorDashboard() {
     10000,
     [uid]
   );
+
+  // Also fetch mental health notifications like mobile app
+  const { data: mindspaceAlerts } = usePolling(
+    () => uid ? mentalHealthService.getDoctorNotifications(uid).then(r => Array.isArray(r) ? r : []).catch(() => []) : Promise.resolve([]),
+    15000,
+    [uid]
+  );
+
   const { data: patients } = usePolling(
     () => doctorService.getPatients().then(r => Array.isArray(r) ? r : []).catch(() => []),
     30000,
     []
   );
 
-  const alertCount = (alerts ?? []).length;
+  // Combined alert count (vitals + mental health) like mobile app
+  const vitalCount = (alerts ?? []).length;
+  const mindCount = (mindspaceAlerts ?? []).length;
+  const totalAlertCount = vitalCount + mindCount;
   const patientCount = (patients ?? []).length;
 
   const tiles = [
     { label: "My Patients", href: "/doctor/patients", icon: "👥", color: "from-blue-500 to-blue-600", count: patientCount },
     { label: "Diagnostics", href: "/doctor/diagnostics", icon: "🔬", color: "from-green-500 to-green-600" },
     { label: "Reports", href: "/doctor/reports", icon: "📊", color: "from-purple-500 to-purple-600" },
-    { label: "Notifications", href: "/doctor/notifications", icon: "🔔", color: "from-[#FF6B35] to-[#FF8C61]", count: alertCount },
+    { label: "Notifications", href: "/doctor/notifications", icon: "🔔", color: "from-[#FF6B35] to-[#FF8C61]", count: totalAlertCount },
   ];
 
   return (
@@ -44,6 +56,21 @@ export default function DoctorDashboard() {
             </div>
             <span className="flex items-center gap-1.5 text-xs text-green-500 font-medium"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />Live</span>
           </div>
+          {/* Quick stats like mobile app */}
+          {totalAlertCount > 0 && (
+            <div className="mt-4 flex gap-3">
+              {vitalCount > 0 && (
+                <span className="px-3 py-1.5 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-medium">
+                  🔔 {vitalCount} vital alert{vitalCount !== 1 ? "s" : ""}
+                </span>
+              )}
+              {mindCount > 0 && (
+                <span className="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-sm font-medium">
+                  🧠 {mindCount} MindSpace report{mindCount !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+          )}
         </motion.div>
         <div className="grid grid-cols-2 gap-4">
           {tiles.map((tile, i) => (

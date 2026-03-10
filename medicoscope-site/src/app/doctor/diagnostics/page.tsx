@@ -43,7 +43,7 @@ export default function DiagnosticsPage() {
         <h1 className="text-2xl font-bold">Diagnostics</h1>
         <div className="glass rounded-2xl p-6 space-y-4">
           <div className="flex gap-3">
-            {["Chest X-Ray", "Brain MRI"].map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`px-4 py-2 rounded-xl text-sm font-medium ${category === cat ? "gradient-primary text-white" : "bg-gray-100 dark:bg-gray-800"}`}>{cat}</button>))}
+            {["Chest X-Ray", "Brain MRI", "Skin Lesion", "Eye/Fundus"].map(cat => (<button key={cat} onClick={() => setCategory(cat)} className={`px-4 py-2 rounded-xl text-sm font-medium ${category === cat ? "gradient-primary text-white" : "bg-gray-100 dark:bg-gray-800"}`}>{cat}</button>))}
           </div>
           <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl p-8 text-center">
             {preview ? (<div className="space-y-3"><img src={preview} alt="Scan" className="max-h-64 mx-auto rounded-xl" /><button onClick={() => { setImage(null); setPreview(null); setResult(null); }} className="text-sm text-red-500">Remove</button></div>) : (

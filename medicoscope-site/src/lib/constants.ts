@@ -4,7 +4,7 @@ export const CARDIO_API_URL = process.env.NEXT_PUBLIC_CARDIO_API_URL!;
 
 export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
 
-export const SCAN_CATEGORIES = ['Chest X-Ray', 'Brain MRI', 'Skin Lesion'] as const;
+export const SCAN_CATEGORIES = ['Chest X-Ray', 'Brain MRI', 'Skin Lesion', 'Eye/Fundus'] as const;
 
 export const REWARD_ITEMS = [
   { id: 'yoga', name: 'Yoga & Meditation Videos', cost: 50, icon: '🧘', description: 'Guided yoga and meditation sessions for stress relief and wellness.' },

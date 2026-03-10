@@ -26,7 +26,7 @@ export default function ReportsPage() {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Reports</h1>
         <div className="flex gap-2 flex-wrap">
-          {["all", "Chest X-Ray", "Brain MRI", "Skin Lesion"].map(f => (<button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-xl text-sm font-medium ${filter === f ? "gradient-primary text-white" : "bg-gray-100 dark:bg-gray-800"}`}>{f === "all" ? "All" : f}</button>))}
+          {["all", "Chest X-Ray", "Brain MRI", "Skin Lesion", "Eye/Fundus"].map(f => (<button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-xl text-sm font-medium ${filter === f ? "gradient-primary text-white" : "bg-gray-100 dark:bg-gray-800"}`}>{f === "all" ? "All" : f}</button>))}
         </div>
         {loading ? <div className="text-center py-20 text-gray-400">Loading...</div> : filtered.length === 0 ? (
           <div className="text-center py-20 text-gray-400"><span className="text-4xl block mb-4">📊</span><p>No reports found</p></div>

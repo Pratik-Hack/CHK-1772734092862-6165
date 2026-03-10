@@ -1,32 +1,60 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { vitalsService } from "@/services/vitals.service";
 import { useAuthStore } from "@/stores/authStore";
+import { usePolling } from "@/hooks/usePolling";
 import { motion, AnimatePresence } from "framer-motion";
-import toast from "react-hot-toast";
 import { formatDateTime } from "@/lib/utils";
 
 export default function AlertsPage() {
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { user } = useAuthStore();
+  const uid = user?.id || "";
 
-  useEffect(() => { if (!user?.id) return; vitalsService.getPatientAlerts(user.id).then(res => setAlerts(Array.isArray(res) ? res : [])).catch(() => toast.error("Failed to load alerts")).finally(() => setLoading(false)); }, [user]);
+  // Auto-refresh every 10 seconds like mobile app
+  const { data: alerts, loading } = usePolling(
+    () => uid ? vitalsService.getPatientAlerts(uid).then(r => Array.isArray(r) ? r : []).catch(() => []) : Promise.resolve([]),
+    10000,
+    [uid]
+  );
+
+  const list = alerts ?? [];
+  const criticalCount = list.filter((a: any) => a.severity === "critical" || a.severity === "high").length;
+  const warningCount = list.filter((a: any) => a.severity === "warning" || a.severity === "medium").length;
 
   const toggle = (id: string) => setExpandedId(prev => prev === id ? null : id);
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Vital Alerts</h1>
-        {loading ? <div className="text-center py-20 text-gray-400">Loading...</div> : alerts.length === 0 ? (
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Vital Alerts</h1>
+          <span className="flex items-center gap-1.5 text-xs text-green-500"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />Auto-refresh</span>
+        </div>
+
+        {/* Summary Card like mobile app */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="glass rounded-xl p-4 text-center border-l-4 border-blue-500">
+            <p className="text-2xl font-bold">{list.length}</p>
+            <p className="text-xs text-gray-500">Total Alerts</p>
+          </div>
+          <div className="glass rounded-xl p-4 text-center border-l-4 border-red-500">
+            <p className="text-2xl font-bold text-red-500">{criticalCount}</p>
+            <p className="text-xs text-gray-500">Critical/High</p>
+          </div>
+          <div className="glass rounded-xl p-4 text-center border-l-4 border-yellow-500">
+            <p className="text-2xl font-bold text-yellow-500">{warningCount}</p>
+            <p className="text-xs text-gray-500">Warnings</p>
+          </div>
+        </div>
+
+        {loading ? <div className="text-center py-20 text-gray-400">Loading...</div> : list.length === 0 ? (
           <div className="text-center py-20 text-gray-400"><span className="text-4xl block mb-4">✅</span><p>No alerts - you&apos;re healthy!</p></div>
         ) : (
           <div className="space-y-3">
-            {alerts.map((alert, i) => {
+            {list.map((alert: any, i: number) => {
               const aid = alert._id || String(i);
               const isOpen = expandedId === aid;
               const sevColor = alert.severity === "critical" || alert.severity === "high" ? "border-red-500" : alert.severity === "warning" || alert.severity === "medium" ? "border-yellow-500" : "border-blue-500";
@@ -38,6 +66,7 @@ export default function AlertsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
+                          <span>{alert.severity === "critical" || alert.severity === "high" ? "🚨" : "⚠️"}</span>
                           <p className="font-medium">{alert.message || "Abnormal vital detected"}</p>
                           <svg className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                         </div>
