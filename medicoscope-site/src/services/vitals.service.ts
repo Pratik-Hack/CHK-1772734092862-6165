@@ -24,12 +24,14 @@ export const vitalsService = {
 
   async getPatientAlerts(patientId: string): Promise<VitalAlert[]> {
     const res = await chatbotApi.get(`/vitals/alerts/patient/${patientId}`);
-    return res.data;
+    const d = res.data;
+    return Array.isArray(d) ? d : d?.alerts ?? d?.data ?? [];
   },
 
   async getDoctorAlerts(doctorId: string): Promise<VitalAlert[]> {
     const res = await chatbotApi.get(`/vitals/alerts/doctor/${doctorId}`);
-    return res.data;
+    const d = res.data;
+    return Array.isArray(d) ? d : d?.alerts ?? d?.data ?? [];
   },
 
   async markAlertRead(alertId: string) {

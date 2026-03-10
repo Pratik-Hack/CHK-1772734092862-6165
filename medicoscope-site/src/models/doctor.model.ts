@@ -1,10 +1,12 @@
 export interface DoctorModel {
   id?: string;
+  _id?: string;
   userId: string;
   specialization: string;
   licenseNumber: string;
   hospital: string;
-  linkedPatientIds: string[];
+  linkedPatientIds?: string[];
+  linkedPatients?: string[];
   yearsOfExperience: number;
 }
 

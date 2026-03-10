@@ -11,12 +11,17 @@ export interface MindSpaceSession {
 
 export interface MindSpaceNotification {
   id?: string;
-  patientId: string;
-  patientName: string;
-  urgency: string;
-  transcript: string;
-  doctorReport: string;
-  timestamp: string;
+  _id?: string;
+  patientId?: string;
+  patient_id?: string;
+  patientName?: string;
+  patient_name?: string;
+  urgency?: string;
+  transcript?: string;
+  doctorReport?: string;
+  report?: string;
+  timestamp?: string;
+  createdAt?: string;
   read?: boolean;
 }
 

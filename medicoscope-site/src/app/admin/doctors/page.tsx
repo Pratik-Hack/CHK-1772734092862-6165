@@ -14,7 +14,7 @@ export default function AdminDoctorsPage() {
   useEffect(() => {
     adminService
       .getDoctors()
-      .then((res) => setDoctors(res.data || res.doctors || (Array.isArray(res) ? res : [])))
+      .then((res) => setDoctors(Array.isArray(res) ? res : []))
       .catch(() => toast.error("Failed to load doctors"))
       .finally(() => setLoading(false));
   }, []);
@@ -77,8 +77,8 @@ export default function AdminDoctorsPage() {
                     {doc.yearsOfExperience && (
                       <p className="text-xs text-gray-400">{doc.yearsOfExperience} yrs exp</p>
                     )}
-                    {doc.linkedPatientIds && (
-                      <p className="text-xs text-gray-400 mt-1">{doc.linkedPatientIds.length} patients</p>
+                    {(doc.linkedPatients || doc.linkedPatientIds) && (
+                      <p className="text-xs text-gray-400 mt-1">{(doc.linkedPatients || doc.linkedPatientIds).length} patients</p>
                     )}
                   </div>
                 </div>

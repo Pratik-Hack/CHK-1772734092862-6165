@@ -1,6 +1,6 @@
-export const API_BASE_URL = 'https://medicoscope-server.onrender.com/api';
-export const CHATBOT_API_URL = 'https://medicoscope-chatbot-mu7p.onrender.com';
-export const CARDIO_API_URL = 'https://cardio-l3eb.onrender.com';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
+export const CHATBOT_API_URL = process.env.NEXT_PUBLIC_CHATBOT_API_URL!;
+export const CARDIO_API_URL = process.env.NEXT_PUBLIC_CARDIO_API_URL!;
 
 export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
 

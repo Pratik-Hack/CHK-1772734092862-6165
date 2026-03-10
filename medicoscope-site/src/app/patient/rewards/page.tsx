@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useCoinsStore } from "@/stores/coinsStore";
 import { useAuthStore } from "@/stores/authStore";
@@ -11,9 +11,15 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 
 export default function RewardsPage() {
-  const { totalCoins, streak, sessions, deductCoins } = useCoinsStore();
+  const { totalCoins, streak, sessions, deductCoins, setSyncData } = useCoinsStore();
   const { user } = useAuthStore();
   const [redeeming, setRedeeming] = useState<string | null>(null);
+
+  useEffect(() => {
+    rewardsService.getBalance().then((r: any) => {
+      if (r) setSyncData({ totalCoins: r.totalCoins, streak: r.currentStreak, sessions: r.totalSessions });
+    }).catch(() => {});
+  }, [setSyncData]);
 
   const handleRedeem = async (item: typeof REWARD_ITEMS[number]) => {
     if (totalCoins < item.cost) { toast.error("Not enough coins"); return; }

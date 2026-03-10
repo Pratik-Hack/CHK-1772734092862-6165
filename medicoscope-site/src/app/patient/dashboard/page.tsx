@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useCoinsStore } from "@/stores/coinsStore";
+import { rewardsService } from "@/services/rewards.service";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -17,7 +19,13 @@ const quickActions = [
 
 export default function PatientDashboard() {
   const { user } = useAuthStore();
-  const { totalCoins, streak } = useCoinsStore();
+  const { totalCoins, streak, setSyncData } = useCoinsStore();
+
+  useEffect(() => {
+    rewardsService.getBalance().then((r: any) => {
+      if (r) setSyncData({ totalCoins: r.totalCoins, streak: r.currentStreak, sessions: r.totalSessions });
+    }).catch(() => {});
+  }, [setSyncData]);
 
   return (
     <DashboardLayout>

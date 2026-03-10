@@ -4,7 +4,8 @@ import type { Reward, ClaimedReward } from '@/models';
 export const rewardsService = {
   async getBalance(): Promise<Reward> {
     const res = await mainApi.get('/rewards');
-    return res.data;
+    const d = res.data;
+    return d?.rewards ?? d ?? {};
   },
 
   async syncCoins(totalCoins: number) {
@@ -24,6 +25,7 @@ export const rewardsService = {
 
   async getClaimedRewards(): Promise<ClaimedReward[]> {
     const res = await mainApi.get('/claimed-rewards');
-    return res.data;
+    const d = res.data;
+    return Array.isArray(d) ? d : d?.rewards ?? d?.claimedRewards ?? d?.data ?? [];
   },
 };

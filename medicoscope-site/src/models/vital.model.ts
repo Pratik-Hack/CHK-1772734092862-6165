@@ -19,6 +19,9 @@ export interface VitalAlert {
   vital?: string;
   currentValue?: number;
   predictedValue?: number;
+  value?: number;
+  threshold?: number;
+  unit?: string;
   timestamp?: string;
   createdAt?: string;
   patientName?: string;

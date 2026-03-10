@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { setAuth } = useAuthStore();
+  const { setAuth, setPatientData, setDoctorData } = useAuthStore();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -22,6 +22,14 @@ export default function LoginPage() {
     try {
       const res = await authService.login({ email, password });
       setAuth(res.token, res.user);
+
+      // Fetch full profile data after login
+      try {
+        const { profile } = await authService.getProfile();
+        if (res.user.role === "patient" && profile) setPatientData(profile);
+        if (res.user.role === "doctor" && profile) setDoctorData(profile);
+      } catch { /* profile fetch is best-effort */ }
+
       toast.success("Welcome back!");
       router.push(`/${res.user.role}/dashboard`);
     } catch (err: any) {

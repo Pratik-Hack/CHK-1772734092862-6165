@@ -29,16 +29,16 @@ export default function ScanPage() {
     if (!image) { toast.error("Please select an image"); return; }
     setAnalyzing(true);
     try {
-      const mockResult = {
-        condition: selectedCategory === "Chest X-Ray" ? "Pneumonia" : selectedCategory === "Brain MRI" ? "Normal Brain Scan" : "Skin Lesion Detected",
-        confidence: Math.random() * 30 + 70,
-        description: `Analysis of ${selectedCategory} image completed. AI detected patterns consistent with the identified condition.`,
+      const res = await detectionService.analyzeImage(image, selectedCategory);
+      const scanResult = {
+        condition: res.className || "Analysis Complete",
+        confidence: res.confidence ?? 0,
+        description: res.description || `Analysis of ${selectedCategory} image completed.`,
         recommendations: ["Consult a specialist", "Schedule follow-up", "Monitor symptoms"],
       };
-      await detectionService.saveDetection({ patientId: user?.id || "", category: selectedCategory, className: mockResult.condition, confidence: mockResult.confidence, description: mockResult.description, performedBy: user?.id || "" });
-      sessionStorage.setItem("scanResult", JSON.stringify(mockResult));
+      sessionStorage.setItem("scanResult", JSON.stringify(scanResult));
       router.push("/patient/scan/results");
-    } catch { toast.error("Analysis failed"); }
+    } catch { toast.error("Analysis failed. Please try again."); }
     finally { setAnalyzing(false); }
   };
 

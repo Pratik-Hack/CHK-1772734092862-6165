@@ -1,4 +1,4 @@
-import { chatbotApi } from './api';
+import { chatbotApi, mainApi } from './api';
 import type { ChatSession } from '@/models';
 
 export const chatService = {
@@ -10,22 +10,23 @@ export const chatService = {
   },
 
   async saveMessage(data: { userId: string; message: string; response: string; sessionId?: string }) {
-    const res = await chatbotApi.post('/chat/message', data);
+    const res = await mainApi.post('/chat/message', data);
     return res.data;
   },
 
   async getHistory(): Promise<ChatSession[]> {
-    const res = await chatbotApi.get('/chat/history');
-    return res.data;
+    const res = await mainApi.get('/chat/history');
+    const d = res.data;
+    return Array.isArray(d) ? d : d?.sessions ?? d?.history ?? d?.data ?? [];
   },
 
   async getSession(sessionId: string): Promise<ChatSession> {
-    const res = await chatbotApi.get(`/chat/session/${sessionId}`);
+    const res = await mainApi.get(`/chat/session/${sessionId}`);
     return res.data;
   },
 
   async deleteSession(sessionId: string) {
-    const res = await chatbotApi.delete(`/chat/session/${sessionId}`);
+    const res = await mainApi.delete(`/chat/session/${sessionId}`);
     return res.data;
   },
 };

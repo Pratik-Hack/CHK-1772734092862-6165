@@ -14,7 +14,8 @@ export const authService = {
 
   async getProfile() {
     const res = await mainApi.get('/users/profile');
-    return res.data;
+    const d = res.data;
+    return { user: d?.user ?? d, profile: d?.profile ?? null };
   },
 
   async updateMedicalSummary(data: Record<string, unknown>) {

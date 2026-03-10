@@ -4,22 +4,26 @@ import type { NearbyDoctor } from '@/models';
 export const adminService = {
   async getStats() {
     const res = await mainApi.get('/admin/stats');
-    return res.data;
+    const d = res.data;
+    return d?.stats ?? d ?? {};
   },
 
   async getPatients() {
     const res = await mainApi.get('/admin/patients');
-    return res.data;
+    const d = res.data;
+    return Array.isArray(d) ? d : d?.patients ?? d?.data ?? [];
   },
 
   async getDoctors() {
     const res = await mainApi.get('/admin/doctors');
-    return res.data;
+    const d = res.data;
+    return Array.isArray(d) ? d : d?.doctors ?? d?.data ?? [];
   },
 
   async getNearbyDoctors(): Promise<NearbyDoctor[]> {
     const res = await mainApi.get('/admin/nearby-doctors');
-    return res.data;
+    const d = res.data;
+    return Array.isArray(d) ? d : d?.doctors ?? d?.nearbyDoctors ?? d?.data ?? [];
   },
 
   async addNearbyDoctor(data: Omit<NearbyDoctor, 'id' | 'distance'>) {

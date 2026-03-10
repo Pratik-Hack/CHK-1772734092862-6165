@@ -32,13 +32,15 @@ export default function VitalsPage() {
   }, [isMonitoring, user, generateVital, addDataPoint, addAlert]);
 
   const startMonitoring = async () => {
+    if (!user?.id) { toast.error("Not logged in"); return; }
     setLoading(true);
-    try { const res = await vitalsService.startSession(user?.id || ""); setSessionId(res.sessionId); setMonitoring(true); toast.success("Monitoring started"); }
+    try { const res = await vitalsService.startSession(user.id); setSessionId(res.sessionId); setMonitoring(true); toast.success("Monitoring started"); }
     catch { toast.error("Failed to start"); } finally { setLoading(false); }
   };
 
   const stopMonitoring = async () => {
-    try { await vitalsService.stopSession(user?.id || ""); setMonitoring(false); toast.success("Monitoring stopped"); }
+    if (!user?.id) return;
+    try { await vitalsService.stopSession(user.id); setMonitoring(false); toast.success("Monitoring stopped"); }
     catch { toast.error("Failed to stop"); }
   };
 

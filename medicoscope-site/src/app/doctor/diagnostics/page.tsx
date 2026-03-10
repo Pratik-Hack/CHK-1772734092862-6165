@@ -2,6 +2,8 @@
 
 import { useState, useRef } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { detectionService } from "@/services/detection.service";
+import { useAuthStore } from "@/stores/authStore";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 
@@ -12,6 +14,7 @@ export default function DiagnosticsPage() {
   const [result, setResult] = useState<any>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuthStore();
 
   const handleFile = (file: File) => { setImage(file); const reader = new FileReader(); reader.onloadend = () => setPreview(reader.result as string); reader.readAsDataURL(file); };
 
@@ -19,11 +22,19 @@ export default function DiagnosticsPage() {
     if (!image) return;
     setAnalyzing(true);
     try {
-      const mockResult = { condition: category === "Chest X-Ray" ? "Pneumonia Detected" : "Brain Tumor - Glioma", confidence: 75 + Math.random() * 20, description: `AI analysis of ${category} complete.`, recommendations: ["Confirm with laboratory tests", "Schedule follow-up imaging", "Consider specialist referral"] };
-      setResult(mockResult);
+      const res = await detectionService.analyzeImage(image, category);
+      setResult({
+        condition: res.className || "Analysis Complete",
+        confidence: res.confidence ?? 0,
+        description: res.description || `AI analysis of ${category} complete.`,
+        recommendations: ["Confirm with laboratory tests", "Schedule follow-up imaging", "Consider specialist referral"],
+      });
       toast.success("Analysis complete");
-    } catch { toast.error("Analysis failed"); }
-    finally { setAnalyzing(false); }
+    } catch {
+      toast.error("Analysis failed. Please try again.");
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   return (

@@ -7,6 +7,7 @@ interface CoinsState {
   sessions: number;
   lastSessionDate: string | null;
   setCoins: (coins: number) => void;
+  setSyncData: (data: { totalCoins?: number; streak?: number; sessions?: number }) => void;
   addCoins: (amount: number) => void;
   deductCoins: (amount: number) => boolean;
   addChatCoins: () => void;
@@ -21,6 +22,11 @@ export const useCoinsStore = create<CoinsState>()(
       sessions: 0,
       lastSessionDate: null,
       setCoins: (coins) => set({ totalCoins: coins }),
+      setSyncData: (data) => set((state) => ({
+        totalCoins: data.totalCoins ?? state.totalCoins,
+        streak: data.streak ?? state.streak,
+        sessions: data.sessions ?? state.sessions,
+      })),
       addCoins: (amount) => set((state) => ({ totalCoins: state.totalCoins + amount })),
       deductCoins: (amount) => {
         const state = get();

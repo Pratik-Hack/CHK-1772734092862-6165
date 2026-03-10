@@ -4,10 +4,13 @@ import type { CardioResult } from '@/models';
 export const cardioService = {
   async analyzeHeartSound(audioFile: File | Blob): Promise<CardioResult> {
     const formData = new FormData();
-    formData.append('audio_file', audioFile, 'recording.wav');
+    const name = audioFile instanceof File ? audioFile.name : 'recording.wav';
+    formData.append('audio_file', audioFile, name);
     const res = await cardioApi.post('/predict', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000,
     });
-    return res.data;
+    const d = res.data;
+    return d?.result ?? d;
   },
 };

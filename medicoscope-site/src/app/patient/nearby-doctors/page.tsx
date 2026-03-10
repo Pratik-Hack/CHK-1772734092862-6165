@@ -13,7 +13,7 @@ export default function NearbyDoctorsPage() {
   const [selectedSpec, setSelectedSpec] = useState("");
   const [radius, setRadius] = useState(10);
 
-  useEffect(() => { nearbyDoctorsService.getSpecializations().then(res => setSpecializations(Array.isArray(res) ? res : [])).catch(() => {}); }, []);
+  useEffect(() => { nearbyDoctorsService.getSpecializations().then(res => setSpecializations(Array.isArray(res) ? res : [])).catch(() => toast.error("Failed to load specializations")); }, []);
 
   const search = async () => {
     setLoading(true);

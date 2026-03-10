@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { rewardsService } from "@/services/rewards.service";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 import { formatDate } from "@/lib/utils";
 
 export default function ClaimedRewardsPage() {
   const [rewards, setRewards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { rewardsService.getClaimedRewards().then(res => setRewards(Array.isArray(res) ? res : [])).catch(() => {}).finally(() => setLoading(false)); }, []);
+  useEffect(() => { rewardsService.getClaimedRewards().then(res => setRewards(Array.isArray(res) ? res : [])).catch(() => toast.error("Failed to load claimed rewards")).finally(() => setLoading(false)); }, []);
 
   return (
     <DashboardLayout>

@@ -14,7 +14,7 @@ export default function AdminPatientsPage() {
   useEffect(() => {
     adminService
       .getPatients()
-      .then((res) => setPatients(res.data || res.patients || (Array.isArray(res) ? res : [])))
+      .then((res) => setPatients(Array.isArray(res) ? res : []))
       .catch(() => toast.error("Failed to load patients"))
       .finally(() => setLoading(false));
   }, []);

@@ -1,20 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { doctorService } from "@/services/doctor.service";
+import { usePolling } from "@/hooks/usePolling";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import toast from "react-hot-toast";
 
 export default function DoctorPatientsPage() {
-  const [patients, setPatients] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  useEffect(() => { doctorService.getPatients().then(res => setPatients(res.data || res.patients || (Array.isArray(res) ? res : []))).catch(() => toast.error("Failed to load patients")).finally(() => setLoading(false)); }, []);
+  const { data: patients, loading } = usePolling(
+    () => doctorService.getPatients().then(r => Array.isArray(r) ? r : []).catch(() => [] as any[]),
+    30000,
+    []
+  );
 
-  const filtered = patients.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()) || p.email?.toLowerCase().includes(search.toLowerCase()));
+  const list = patients ?? [];
+  const filtered = list.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()) || p.email?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <DashboardLayout>
@@ -26,8 +29,8 @@ export default function DoctorPatientsPage() {
         ) : (
           <div className="space-y-3">
             {filtered.map((patient, i) => (
-              <motion.div key={patient._id || i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                <Link href={`/doctor/patients/${patient._id}`} className="block glass rounded-xl p-4 hover:shadow-md transition-shadow">
+              <motion.div key={patient._id || patient.userId || patient.id || i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                <Link href={`/doctor/patients/${patient._id || patient.userId || patient.id}`} className="block glass rounded-xl p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 gradient-primary rounded-full flex items-center justify-center text-white font-bold">{patient.name?.charAt(0) || "P"}</div>
                     <div><p className="font-semibold">{patient.name}</p><p className="text-sm text-gray-500">{patient.email} · {patient.age ? `${patient.age} yrs` : ""} {patient.bloodGroup || ""}</p></div>

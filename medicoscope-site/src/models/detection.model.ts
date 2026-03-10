@@ -12,14 +12,16 @@ export interface DetectionResult {
 
 export interface DetectionRecord {
   id?: string;
+  _id?: string;
   className: string;
   confidence: number;
   category: string;
   description: string;
   patientId?: string;
   doctorId?: string;
-  performedBy: string;
+  performedBy?: string | { _id: string; name: string; role: string };
   performedByName?: string;
   performedByRole?: string;
-  timestamp: string;
+  timestamp?: string;
+  createdAt?: string;
 }

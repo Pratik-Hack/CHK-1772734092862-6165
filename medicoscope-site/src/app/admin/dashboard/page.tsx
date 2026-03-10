@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     adminService
       .getStats()
-      .then((res) => setStats(res.data || res))
+      .then((res) => setStats(res))
       .catch(() => toast.error("Failed to load stats"))
       .finally(() => setLoading(false));
   }, []);

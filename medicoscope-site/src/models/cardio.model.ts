@@ -1,7 +1,7 @@
 export interface CardioResult {
   prediction: string;
-  avgHeartRate: number;
-  heartRateData: { time: number; bpm: number }[];
-  audioWaveform: { time: number[]; amplitude: number[] };
-  ecgData: number[];
+  avg_heart_rate: number;
+  heart_rate_data: { time: number; bpm: number }[];
+  audio_waveform: { time: number[]; amplitude: number[] };
+  ecg_data: number[];
 }
