@@ -66,7 +66,7 @@ class VitalsService {
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'session_id': sessionId}),
         )
-        .timeout(const Duration(seconds: 15));
+        .timeout(const Duration(seconds: 5));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;

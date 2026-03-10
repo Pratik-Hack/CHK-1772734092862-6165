@@ -47,6 +47,7 @@ class VitalAlert {
   final String emergencyContactName;
   final String emergencyContactPhone;
   final String patientName;
+  final bool isLocal;
 
   VitalAlert({
     required this.type,
@@ -63,6 +64,7 @@ class VitalAlert {
     this.emergencyContactName = '',
     this.emergencyContactPhone = '',
     this.patientName = '',
+    this.isLocal = false,
   });
 
   factory VitalAlert.fromJson(Map<String, dynamic> json) {
@@ -88,6 +90,22 @@ class VitalAlert {
 /// Callback type for when new alerts arrive during monitoring.
 typedef OnNewAlertsCallback = void Function(List<VitalAlert> newAlerts);
 
+// ── Vital Thresholds for instant client-side alerting ──────────────────────
+
+class _VitalThreshold {
+  final double criticalLow;
+  final double warningLow;
+  final double warningHigh;
+  final double criticalHigh;
+
+  const _VitalThreshold({
+    required this.criticalLow,
+    required this.warningLow,
+    required this.warningHigh,
+    required this.criticalHigh,
+  });
+}
+
 class VitalsProvider extends ChangeNotifier {
   String? _sessionId;
   String? _scenario;
@@ -97,6 +115,11 @@ class VitalsProvider extends ChangeNotifier {
   Timer? _tickTimer;
   DateTime? _sessionStart;
   String _sessionLocation = 'Unknown';
+  String _patientName = '';
+  String _emergencyContactName = '';
+  String _emergencyContactPhone = '';
+  double _latitude = 0.0;
+  double _longitude = 0.0;
 
   final List<VitalDataPoint> _dataPoints = [];
   final List<VitalDataPoint> _allDataPoints = []; // unclipped for summary
@@ -107,6 +130,42 @@ class VitalsProvider extends ChangeNotifier {
 
   // Max points to keep in memory for graph display
   static const int _maxPoints = 100;
+
+  // ── Polling intervals ──────────────────────────────────────────────────
+  static const Duration _normalInterval = Duration(seconds: 2);
+  static const Duration _urgentInterval = Duration(milliseconds: 800);
+
+  // ── Medical thresholds ─────────────────────────────────────────────────
+  static const _hrThreshold = _VitalThreshold(
+    criticalLow: 40,
+    warningLow: 50,
+    warningHigh: 130,
+    criticalHigh: 160,
+  );
+  static const _systolicThreshold = _VitalThreshold(
+    criticalLow: 70,
+    warningLow: 90,
+    warningHigh: 150,
+    criticalHigh: 180,
+  );
+  static const _diastolicThreshold = _VitalThreshold(
+    criticalLow: 40,
+    warningLow: 60,
+    warningHigh: 95,
+    criticalHigh: 110,
+  );
+  static const _spo2Threshold = _VitalThreshold(
+    criticalLow: 88,
+    warningLow: 92,
+    warningHigh: 101,
+    criticalHigh: 101,
+  );
+
+  // Track which local alert keys have already been fired to avoid spam
+  final Set<String> _firedLocalAlertKeys = {};
+
+  // Track if we're in urgent mode (abnormal vitals detected)
+  bool _urgentMode = false;
 
   String? get sessionId => _sessionId;
   String? get scenario => _scenario;
@@ -156,16 +215,20 @@ class VitalsProvider extends ChangeNotifier {
       _isStarting = false;
       _sessionStart = DateTime.now();
       _sessionLocation = location;
+      _patientName = patientName;
+      _emergencyContactName = emergencyContactName;
+      _emergencyContactPhone = emergencyContactPhone;
+      _latitude = latitude;
+      _longitude = longitude;
       _dataPoints.clear();
       _allDataPoints.clear();
       _alerts.clear();
+      _firedLocalAlertKeys.clear();
+      _urgentMode = false;
       notifyListeners();
 
-      // Start polling for data every 3 seconds
-      _tickTimer = Timer.periodic(
-        const Duration(seconds: 3),
-        (_) => _fetchTick(),
-      );
+      // Start polling at normal interval (2s instead of old 3s)
+      _startTicker(_normalInterval);
 
       // Fetch first batch immediately
       await _fetchTick();
@@ -179,6 +242,11 @@ class VitalsProvider extends ChangeNotifier {
       }
       notifyListeners();
     }
+  }
+
+  void _startTicker(Duration interval) {
+    _tickTimer?.cancel();
+    _tickTimer = Timer.periodic(interval, (_) => _fetchTick());
   }
 
   Future<void> _fetchTick() async {
@@ -199,18 +267,40 @@ class VitalsProvider extends ChangeNotifier {
         _dataPoints.removeRange(0, _dataPoints.length - _maxPoints);
       }
 
-      // Process alerts
+      // ── Instant client-side threshold check on every new data point ──
+      final localAlerts = <VitalAlert>[];
+      for (final point in points) {
+        localAlerts.addAll(_checkThresholds(point));
+      }
+
+      // ── Process backend alerts ───────────────────────────────────────
       final alertsJson = result['alerts'] as List? ?? [];
-      final newAlerts = <VitalAlert>[];
+      final backendAlerts = <VitalAlert>[];
       for (final a in alertsJson) {
-        final alert = VitalAlert.fromJson(a as Map<String, dynamic>);
+        backendAlerts.add(VitalAlert.fromJson(a as Map<String, dynamic>));
+      }
+
+      // Combine: local alerts fire first (instant), then backend alerts
+      final allNewAlerts = [...localAlerts, ...backendAlerts];
+
+      for (final alert in allNewAlerts) {
         _alerts.add(alert);
-        newAlerts.add(alert);
+      }
+
+      // ── Adaptive polling: switch to urgent if any alert is critical ──
+      final hasCritical = allNewAlerts.any((a) => a.severity == 'critical');
+
+      if (hasCritical && !_urgentMode) {
+        _urgentMode = true;
+        _startTicker(_urgentInterval);
+      } else if (_urgentMode && allNewAlerts.isEmpty && _isRecentVitalsNormal()) {
+        _urgentMode = false;
+        _startTicker(_normalInterval);
       }
 
       // Notify callback for SMS triggering
-      if (newAlerts.isNotEmpty && onNewAlerts != null) {
-        onNewAlerts!(newAlerts);
+      if (allNewAlerts.isNotEmpty && onNewAlerts != null) {
+        onNewAlerts!(allNewAlerts);
       }
 
       _error = null;
@@ -219,6 +309,257 @@ class VitalsProvider extends ChangeNotifier {
       _error = e.toString();
       notifyListeners();
     }
+  }
+
+  /// Check a single data point against medical thresholds and generate
+  /// instant local alerts. Uses a cooldown key so the same alert type
+  /// doesn't fire repeatedly within a short window.
+  List<VitalAlert> _checkThresholds(VitalDataPoint point) {
+    final alerts = <VitalAlert>[];
+    final now = DateTime.now().toUtc().toIso8601String();
+    final mapsUrl = (_latitude != 0.0 && _longitude != 0.0)
+        ? 'https://www.google.com/maps?q=$_latitude,$_longitude'
+        : '';
+
+    // Heart Rate
+    alerts.addAll(_evaluateVital(
+      value: point.heartRate,
+      vitalName: 'heart_rate',
+      displayName: 'Heart Rate',
+      unit: 'bpm',
+      threshold: _hrThreshold,
+      timestamp: now,
+      mapsUrl: mapsUrl,
+    ));
+
+    // Systolic BP
+    alerts.addAll(_evaluateVital(
+      value: point.systolic,
+      vitalName: 'blood_pressure',
+      displayName: 'Systolic BP',
+      unit: 'mmHg',
+      threshold: _systolicThreshold,
+      timestamp: now,
+      mapsUrl: mapsUrl,
+    ));
+
+    // Diastolic BP
+    alerts.addAll(_evaluateVital(
+      value: point.diastolic,
+      vitalName: 'blood_pressure',
+      displayName: 'Diastolic BP',
+      unit: 'mmHg',
+      threshold: _diastolicThreshold,
+      timestamp: now,
+      mapsUrl: mapsUrl,
+    ));
+
+    // SpO2 (only low is dangerous)
+    alerts.addAll(_evaluateVital(
+      value: point.spo2,
+      vitalName: 'spo2',
+      displayName: 'SpO2',
+      unit: '%',
+      threshold: _spo2Threshold,
+      timestamp: now,
+      mapsUrl: mapsUrl,
+      onlyLow: true,
+    ));
+
+    // Sudden spike/drop detection
+    alerts.addAll(_checkSuddenChanges(point, now, mapsUrl));
+
+    return alerts;
+  }
+
+  List<VitalAlert> _evaluateVital({
+    required double value,
+    required String vitalName,
+    required String displayName,
+    required String unit,
+    required _VitalThreshold threshold,
+    required String timestamp,
+    required String mapsUrl,
+    bool onlyLow = false,
+  }) {
+    final alerts = <VitalAlert>[];
+
+    String? severity;
+    String? direction;
+
+    if (value <= threshold.criticalLow) {
+      severity = 'critical';
+      direction = 'dangerously low';
+    } else if (value <= threshold.warningLow) {
+      severity = 'high';
+      direction = 'low';
+    } else if (!onlyLow && value >= threshold.criticalHigh) {
+      severity = 'critical';
+      direction = 'dangerously high';
+    } else if (!onlyLow && value >= threshold.warningHigh) {
+      severity = 'high';
+      direction = 'high';
+    }
+
+    if (severity != null && direction != null) {
+      // Cooldown: don't fire same alert type+severity within 30 seconds
+      final key = '${vitalName}_${severity}_$direction';
+      if (!_firedLocalAlertKeys.contains(key)) {
+        _firedLocalAlertKeys.add(key);
+        Future.delayed(const Duration(seconds: 30), () {
+          _firedLocalAlertKeys.remove(key);
+        });
+
+        alerts.add(VitalAlert(
+          type: 'threshold_breach',
+          severity: severity,
+          message:
+              '$displayName is $direction at ${value.toStringAsFixed(1)} $unit. Immediate attention may be required.',
+          vital: vitalName,
+          currentValue: value,
+          predictedValue: value,
+          timestamp: timestamp,
+          location: _sessionLocation,
+          latitude: _latitude,
+          longitude: _longitude,
+          mapsUrl: mapsUrl,
+          emergencyContactName: _emergencyContactName,
+          emergencyContactPhone: _emergencyContactPhone,
+          patientName: _patientName,
+          isLocal: true,
+        ));
+      }
+    }
+
+    return alerts;
+  }
+
+  /// Detect sudden spikes/drops by comparing current reading to the
+  /// average of the last 5 readings.
+  List<VitalAlert> _checkSuddenChanges(
+    VitalDataPoint current,
+    String timestamp,
+    String mapsUrl,
+  ) {
+    if (_dataPoints.length < 6) return [];
+
+    final alerts = <VitalAlert>[];
+    final recent = _dataPoints.sublist(
+      math.max(0, _dataPoints.length - 6),
+      _dataPoints.length - 1,
+    );
+
+    double avgHR =
+        recent.map((p) => p.heartRate).reduce((a, b) => a + b) / recent.length;
+    double avgSys =
+        recent.map((p) => p.systolic).reduce((a, b) => a + b) / recent.length;
+    double avgSpo2 =
+        recent.map((p) => p.spo2).reduce((a, b) => a + b) / recent.length;
+
+    // Heart rate sudden change > 30 bpm
+    if ((current.heartRate - avgHR).abs() > 30) {
+      final dir = current.heartRate > avgHR ? 'spike' : 'drop';
+      final key = 'hr_sudden_$dir';
+      if (!_firedLocalAlertKeys.contains(key)) {
+        _firedLocalAlertKeys.add(key);
+        Future.delayed(const Duration(seconds: 20), () {
+          _firedLocalAlertKeys.remove(key);
+        });
+        alerts.add(VitalAlert(
+          type: 'sudden_change',
+          severity: 'critical',
+          message:
+              'Sudden heart rate $dir detected: ${current.heartRate.toStringAsFixed(0)} bpm (was ~${avgHR.toStringAsFixed(0)} bpm). This could be life-threatening.',
+          vital: 'heart_rate',
+          currentValue: current.heartRate,
+          predictedValue: avgHR,
+          timestamp: timestamp,
+          location: _sessionLocation,
+          latitude: _latitude,
+          longitude: _longitude,
+          mapsUrl: mapsUrl,
+          emergencyContactName: _emergencyContactName,
+          emergencyContactPhone: _emergencyContactPhone,
+          patientName: _patientName,
+          isLocal: true,
+        ));
+      }
+    }
+
+    // Systolic sudden change > 30 mmHg
+    if ((current.systolic - avgSys).abs() > 30) {
+      final dir = current.systolic > avgSys ? 'spike' : 'drop';
+      final key = 'sys_sudden_$dir';
+      if (!_firedLocalAlertKeys.contains(key)) {
+        _firedLocalAlertKeys.add(key);
+        Future.delayed(const Duration(seconds: 20), () {
+          _firedLocalAlertKeys.remove(key);
+        });
+        alerts.add(VitalAlert(
+          type: 'sudden_change',
+          severity: 'critical',
+          message:
+              'Sudden blood pressure $dir: ${current.systolic.toStringAsFixed(0)} mmHg (was ~${avgSys.toStringAsFixed(0)} mmHg).',
+          vital: 'blood_pressure',
+          currentValue: current.systolic,
+          predictedValue: avgSys,
+          timestamp: timestamp,
+          location: _sessionLocation,
+          latitude: _latitude,
+          longitude: _longitude,
+          mapsUrl: mapsUrl,
+          emergencyContactName: _emergencyContactName,
+          emergencyContactPhone: _emergencyContactPhone,
+          patientName: _patientName,
+          isLocal: true,
+        ));
+      }
+    }
+
+    // SpO2 sudden drop > 4%
+    if (avgSpo2 - current.spo2 > 4) {
+      const key = 'spo2_sudden_drop';
+      if (!_firedLocalAlertKeys.contains(key)) {
+        _firedLocalAlertKeys.add(key);
+        Future.delayed(const Duration(seconds: 20), () {
+          _firedLocalAlertKeys.remove(key);
+        });
+        alerts.add(VitalAlert(
+          type: 'sudden_change',
+          severity: 'critical',
+          message:
+              'Rapid SpO2 drop: ${current.spo2.toStringAsFixed(1)}% (was ~${avgSpo2.toStringAsFixed(1)}%). Possible respiratory distress.',
+          vital: 'spo2',
+          currentValue: current.spo2,
+          predictedValue: avgSpo2,
+          timestamp: timestamp,
+          location: _sessionLocation,
+          latitude: _latitude,
+          longitude: _longitude,
+          mapsUrl: mapsUrl,
+          emergencyContactName: _emergencyContactName,
+          emergencyContactPhone: _emergencyContactPhone,
+          patientName: _patientName,
+          isLocal: true,
+        ));
+      }
+    }
+
+    return alerts;
+  }
+
+  /// Check if the last 5 data points are all within normal range.
+  bool _isRecentVitalsNormal() {
+    if (_dataPoints.length < 5) return false;
+    final recent = _dataPoints.sublist(_dataPoints.length - 5);
+    return recent.every((p) =>
+        p.heartRate > _hrThreshold.warningLow &&
+        p.heartRate < _hrThreshold.warningHigh &&
+        p.systolic > _systolicThreshold.warningLow &&
+        p.systolic < _systolicThreshold.warningHigh &&
+        p.diastolic > _diastolicThreshold.warningLow &&
+        p.diastolic < _diastolicThreshold.warningHigh &&
+        p.spo2 > _spo2Threshold.warningLow);
   }
 
   Future<void> stopMonitoring({String? token}) async {
@@ -248,7 +589,8 @@ class VitalsProvider extends ChangeNotifier {
         final diaValues = pts.map((p) => p.diastolic).toList();
         final spo2Values = pts.map((p) => p.spo2).toList();
 
-        double avg(List<double> v) => v.isEmpty ? 0 : v.reduce((a, b) => a + b) / v.length;
+        double avg(List<double> v) =>
+            v.isEmpty ? 0 : v.reduce((a, b) => a + b) / v.length;
 
         await VitalsService.saveSessionSummary(
           token: token,
@@ -264,15 +606,17 @@ class VitalsProvider extends ChangeNotifier {
             'avgDiastolic': avg(diaValues),
             'avgSpO2': avg(spo2Values),
             'minSpO2': spo2Values.reduce(math.min),
-            'alerts': _alerts.map((a) => {
-              'type': a.type,
-              'severity': a.severity,
-              'message': a.message,
-              'vital': a.vital,
-              'currentValue': a.currentValue,
-              'predictedValue': a.predictedValue,
-              'timestamp': a.timestamp,
-            }).toList(),
+            'alerts': _alerts
+                .map((a) => {
+                      'type': a.type,
+                      'severity': a.severity,
+                      'message': a.message,
+                      'vital': a.vital,
+                      'currentValue': a.currentValue,
+                      'predictedValue': a.predictedValue,
+                      'timestamp': a.timestamp,
+                    })
+                .toList(),
             'location': _sessionLocation,
           },
         );
@@ -284,8 +628,10 @@ class VitalsProvider extends ChangeNotifier {
     _isMonitoring = false;
     _sessionId = null;
     _sessionStart = null;
+    _urgentMode = false;
     onNewAlerts = null;
     _allDataPoints.clear();
+    _firedLocalAlertKeys.clear();
     notifyListeners();
   }
 

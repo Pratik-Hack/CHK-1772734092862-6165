@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:medicoscope/core/theme/app_theme.dart';
@@ -21,14 +22,26 @@ class _PatientAlertsScreenState extends State<PatientAlertsScreen> {
   List<Map<String, dynamic>> _alerts = [];
   bool _isLoading = true;
   String? _expandedId;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _fetchAlerts();
+    // Auto-refresh every 10 seconds for near real-time alert updates
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _fetchAlerts(silent: true),
+    );
   }
 
-  Future<void> _fetchAlerts() async {
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchAlerts({bool silent = false}) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final patientId = authProvider.user?.id ?? '';
 
@@ -36,12 +49,14 @@ class _PatientAlertsScreenState extends State<PatientAlertsScreen> {
       final alerts = await VitalsService.getPatientAlerts(
         patientId: patientId,
       );
+      if (!mounted) return;
       setState(() {
         _alerts = alerts;
-        _isLoading = false;
+        if (!silent) _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (!mounted) return;
+      if (!silent) setState(() => _isLoading = false);
     }
   }
 

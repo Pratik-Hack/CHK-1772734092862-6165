@@ -52,11 +52,16 @@ class _VitalsScreenState extends State<VitalsScreen>
   }
 
   /// Fetch patient info and location in parallel so the user can start fast.
+  /// Each task has its own timeout so one slow call never blocks the button.
   Future<void> _loadPrerequisites() async {
-    await Future.wait([
-      _fetchPatientInfo(),
-      _fetchLocation(),
-    ]);
+    try {
+      await Future.wait([
+        _fetchPatientInfo().timeout(const Duration(seconds: 8), onTimeout: () {}),
+        _fetchLocation().timeout(const Duration(seconds: 8), onTimeout: () {}),
+      ]);
+    } catch (_) {
+      // Never block — proceed with defaults
+    }
     _infoReady = true;
     if (mounted) setState(() {});
   }
@@ -65,10 +70,16 @@ class _VitalsScreenState extends State<VitalsScreen>
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final api = ApiService(token: authProvider.token);
-      // Run doctor + profile calls in parallel
+      // Run doctor + profile calls in parallel, each with a timeout
       final results = await Future.wait([
-        api.get(ApiConstants.patientDoctor),
-        api.get(ApiConstants.profile),
+        api.get(ApiConstants.patientDoctor).timeout(
+              const Duration(seconds: 6),
+              onTimeout: () => <String, dynamic>{},
+            ),
+        api.get(ApiConstants.profile).timeout(
+              const Duration(seconds: 6),
+              onTimeout: () => <String, dynamic>{},
+            ),
       ]);
       final doctorRes = results[0];
       final profileRes = results[1];
@@ -113,7 +124,7 @@ class _VitalsScreenState extends State<VitalsScreen>
         final placemarks = await placemarkFromCoordinates(
           position.latitude,
           position.longitude,
-        );
+        ).timeout(const Duration(seconds: 3), onTimeout: () => []);
         if (placemarks.isNotEmpty) {
           final p = placemarks.first;
           final parts = <String>[

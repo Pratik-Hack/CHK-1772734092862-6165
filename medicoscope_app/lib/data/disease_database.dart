@@ -5,7 +5,7 @@ class DiseaseDatabase {
       'category': 'skin',
       'description':
           'A precancerous skin condition with rough, scaly patches on sun-exposed areas. Appears as dry, rough patches that feel like sandpaper, typically pink, red, or brown in color. Can progress to skin cancer if untreated.',
-      'model3d': 'assets/3d_models/Actinic Keratoses.glb',
+      'model3d': 'assets/3d_models/actinic-keratoses.glb',
     },
     'Basal Cell Carcinoma': {
       'category': 'skin',
@@ -29,7 +29,7 @@ class DiseaseDatabase {
       'category': 'skin',
       'description':
           'Common moles that are typically brown, round, and uniform in color. Most are benign and appear during childhood. Monitor for changes using the ABCDE rule (Asymmetry, Border, Color, Diameter, Evolution).',
-      'model3d': 'assets/3d_models/Melanocytic Nevi.glb',
+      'model3d': 'assets/3d_models/melanocytic-nevi.glb',
     },
     'Melanoma': {
       'category': 'skin',

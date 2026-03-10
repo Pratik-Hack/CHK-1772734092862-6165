@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:medicoscope/core/theme/app_theme.dart';
@@ -32,16 +33,24 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   bool _vitalsLoading = true;
   String? _vitalsExpandedId;
 
+  Timer? _refreshTimer;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _fetchMentalNotifications();
     _fetchVitalsAlerts();
+    // Auto-refresh vitals alerts every 10 seconds
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _fetchVitalsAlerts(silent: true),
+    );
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _tabController.dispose();
     super.dispose();
   }
@@ -56,27 +65,31 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         doctorId: userId,
         token: token,
       );
+      if (!mounted) return;
       setState(() {
         _mentalNotifications = notifications;
         _mentalLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _mentalLoading = false);
     }
   }
 
-  Future<void> _fetchVitalsAlerts() async {
+  Future<void> _fetchVitalsAlerts({bool silent = false}) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final userId = authProvider.user?.id ?? '';
 
     try {
       final alerts = await VitalsService.getDoctorAlerts(doctorId: userId);
+      if (!mounted) return;
       setState(() {
         _vitalsAlerts = alerts;
-        _vitalsLoading = false;
+        if (!silent) _vitalsLoading = false;
       });
     } catch (e) {
-      setState(() => _vitalsLoading = false);
+      if (!mounted) return;
+      if (!silent) setState(() => _vitalsLoading = false);
     }
   }
 

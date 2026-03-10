@@ -77,7 +77,7 @@ class _DetectionResultsScreenState extends State<DetectionResultsScreen> {
                       src: widget.result.model3dPath,
                       alt: '3D model of ${widget.result.className}',
                       autoRotate: true,
-                      cameraControls: true,
+                      cameraControls: false,
                       backgroundColor: Colors.transparent,
                     ),
                   ),
