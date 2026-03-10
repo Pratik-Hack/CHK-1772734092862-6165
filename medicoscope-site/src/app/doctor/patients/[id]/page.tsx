@@ -12,7 +12,7 @@ export default function PatientDetailPage() {
   const [detections, setDetections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { if (id) detectionService.getPatientDetections(id as string).then(res => setDetections(Array.isArray(res) ? res : res.data || [])).catch(() => {}).finally(() => setLoading(false)); }, [id]);
+  useEffect(() => { if (id) detectionService.getPatientDetections(id as string).then(res => setDetections(Array.isArray(res) ? res : [])).catch(() => {}).finally(() => setLoading(false)); }, [id]);
 
   return (
     <DashboardLayout>

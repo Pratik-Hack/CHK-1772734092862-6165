@@ -12,7 +12,7 @@ export default function ChatHistoryPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { chatService.getHistory().then(res => { setSessions(Array.isArray(res) ? res : res.data || []); }).catch(() => toast.error("Failed to load history")).finally(() => setLoading(false)); }, []);
+  useEffect(() => { chatService.getHistory().then(res => { setSessions(Array.isArray(res) ? res : []); }).catch(() => toast.error("Failed to load history")).finally(() => setLoading(false)); }, []);
 
   const handleDelete = async (id: string) => {
     try { await chatService.deleteSession(id); setSessions(prev => prev.filter(s => s._id !== id && s.id !== id)); toast.success("Deleted"); } catch { toast.error("Failed to delete"); }

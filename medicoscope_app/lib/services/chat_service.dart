@@ -11,6 +11,7 @@ class ChatService {
     required String sessionId,
     required String patientProfile,
     String language = 'en',
+    String? medicalContext,
   }) async {
     final url = Uri.parse('${ApiConstants.chatbotBaseUrl}/chat');
 
@@ -23,6 +24,7 @@ class ChatService {
             'session_id': sessionId,
             'patient_profile': patientProfile,
             'language': language,
+            if (medicalContext != null) 'medical_context': medicalContext,
           }),
         )
         .timeout(const Duration(seconds: 30));
@@ -43,6 +45,7 @@ class ChatService {
     required String sessionId,
     required String patientProfile,
     String language = 'en',
+    String? medicalContext,
   }) async* {
     final url = Uri.parse('${ApiConstants.chatbotBaseUrl}/chat/stream');
     final request = http.Request('POST', url);
@@ -52,6 +55,7 @@ class ChatService {
       'session_id': sessionId,
       'patient_profile': patientProfile,
       'language': language,
+      if (medicalContext != null) 'medical_context': medicalContext,
     });
 
     final client = http.Client();
@@ -137,5 +141,89 @@ class ChatService {
   static Future<void> deleteChatSession(String token, String sessionId) async {
     final api = ApiService(token: token);
     await api.delete('${ApiConstants.chatSession}/$sessionId');
+  }
+
+  /// Fetch the patient's full medical summary for chatbot context.
+  /// Includes: conditions, medications, vitals, detections, mindspace sessions.
+  static Future<String> fetchMedicalContext(String token) async {
+    try {
+      final api = ApiService(token: token);
+      final data = await api.get(ApiConstants.patientMedicalSummary);
+
+      final parts = <String>[];
+
+      // Patient profile
+      final patient = data['patient'] as Map<String, dynamic>? ?? {};
+      if (patient.isNotEmpty) {
+        final conditions = List<String>.from(patient['conditions'] ?? []);
+        final medications = List.from(patient['medications'] ?? []);
+        final bloodGroup = patient['bloodGroup'] ?? '';
+        final dob = patient['dateOfBirth'] ?? '';
+
+        if (bloodGroup.isNotEmpty) parts.add('Blood Group: $bloodGroup');
+        if (dob.isNotEmpty) parts.add('Date of Birth: $dob');
+        if (conditions.isNotEmpty) {
+          parts.add('Known Conditions: ${conditions.join(", ")}');
+        }
+        if (medications.isNotEmpty) {
+          final medStr = medications
+              .map((m) => '${m['name']} (${m['dosage']}, ${m['frequency']})')
+              .join('; ');
+          parts.add('Current Medications: $medStr');
+        }
+      }
+
+      // Recent detections (AI scans)
+      final detections =
+          List<Map<String, dynamic>>.from(data['detections'] ?? []);
+      if (detections.isNotEmpty) {
+        parts.add('\n--- Recent AI Scan Results ---');
+        for (final d in detections) {
+          final conf = ((d['confidence'] as num?) ?? 0) * 100;
+          parts.add(
+            '• ${d['category']}: ${d['className']} '
+            '(${conf.toStringAsFixed(1)}% confidence) '
+            'on ${d['date'] ?? 'unknown date'}'
+            '${d['description'] != null && d['description'].toString().isNotEmpty ? " - ${d['description']}" : ""}',
+          );
+        }
+      }
+
+      // Recent vitals
+      final vitals = List<Map<String, dynamic>>.from(data['vitals'] ?? []);
+      if (vitals.isNotEmpty) {
+        parts.add('\n--- Recent Vitals Monitoring Sessions ---');
+        for (final v in vitals) {
+          final alerts = List.from(v['alerts'] ?? []);
+          parts.add(
+            '• Session on ${v['date'] ?? 'unknown'}: '
+            'HR avg ${v['avgHeartRate']} (${v['minHeartRate']}-${v['maxHeartRate']}), '
+            'BP ${v['avgSystolic']}/${v['avgDiastolic']}, '
+            'SpO2 avg ${v['avgSpO2']} (min ${v['minSpO2']})'
+            '${alerts.isNotEmpty ? ", Alerts: ${alerts.length}" : ""}',
+          );
+        }
+      }
+
+      // MindSpace sessions
+      final mindspace =
+          List<Map<String, dynamic>>.from(data['mindspace'] ?? []);
+      if (mindspace.isNotEmpty) {
+        parts.add('\n--- Recent MindSpace Mental Health Check-ins ---');
+        for (final s in mindspace) {
+          parts.add(
+            '• Check-in on ${s['date'] ?? 'unknown'} '
+            '(urgency: ${s['urgency'] ?? 'low'}):\n'
+            '  Patient said: "${s['transcript'] ?? ''}"'
+            '${s['aiResponse'] != null && s['aiResponse'].toString().isNotEmpty ? "\n  AI Response: ${s['aiResponse']}" : ""}',
+          );
+        }
+      }
+
+      if (parts.isEmpty) return '';
+      return parts.join('\n');
+    } catch (_) {
+      return '';
+    }
   }
 }

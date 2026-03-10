@@ -38,7 +38,7 @@ export default function HeartPage() {
     try {
       const file = new File([audioBlob], "heart-sound.webm", { type: audioBlob.type });
       const result = await cardioService.analyzeHeartSound(file);
-      sessionStorage.setItem("heartResult", JSON.stringify(result.data || result));
+      sessionStorage.setItem("heartResult", JSON.stringify(result));
       router.push("/patient/heart/results");
     } catch { toast.error("Analysis failed"); }
     finally { setAnalyzing(false); }

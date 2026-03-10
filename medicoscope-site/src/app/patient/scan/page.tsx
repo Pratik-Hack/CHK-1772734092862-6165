@@ -35,7 +35,7 @@ export default function ScanPage() {
         description: `Analysis of ${selectedCategory} image completed. AI detected patterns consistent with the identified condition.`,
         recommendations: ["Consult a specialist", "Schedule follow-up", "Monitor symptoms"],
       };
-      await detectionService.saveDetection({ patientId: user?._id || "", imageUrl: preview || "", category: selectedCategory, result: mockResult.condition, confidence: mockResult.confidence, description: mockResult.description });
+      await detectionService.saveDetection({ patientId: user?.id || "", imageUrl: preview || "", category: selectedCategory, result: mockResult.condition, confidence: mockResult.confidence, description: mockResult.description });
       sessionStorage.setItem("scanResult", JSON.stringify(mockResult));
       router.push("/patient/scan/results");
     } catch { toast.error("Analysis failed"); }

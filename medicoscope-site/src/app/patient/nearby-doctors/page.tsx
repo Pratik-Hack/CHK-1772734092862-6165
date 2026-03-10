@@ -13,7 +13,7 @@ export default function NearbyDoctorsPage() {
   const [selectedSpec, setSelectedSpec] = useState("");
   const [radius, setRadius] = useState(10);
 
-  useEffect(() => { nearbyDoctorsService.getSpecializations().then(res => setSpecializations(Array.isArray(res) ? res : res.data || [])).catch(() => {}); }, []);
+  useEffect(() => { nearbyDoctorsService.getSpecializations().then(res => setSpecializations(Array.isArray(res) ? res : [])).catch(() => {}); }, []);
 
   const search = async () => {
     setLoading(true);
@@ -21,7 +21,7 @@ export default function NearbyDoctorsPage() {
       navigator.geolocation.getCurrentPosition(async (pos) => {
         try {
           const res = await nearbyDoctorsService.search({ lat: pos.coords.latitude, lng: pos.coords.longitude, radius, specialization: selectedSpec || undefined });
-          const data = Array.isArray(res) ? res : res.data || [];
+          const data = Array.isArray(res) ? res : [];
           setDoctors(data);
           if (!data.length) toast("No doctors found nearby");
         } catch { toast.error("Search failed"); }

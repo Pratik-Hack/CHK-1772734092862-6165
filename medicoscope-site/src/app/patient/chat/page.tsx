@@ -32,7 +32,7 @@ export default function ChatPage() {
       setMessages(prev => [...prev, { role: "assistant", content: "" }]);
       const response = await fetch(`${CHATBOT_API_URL}/chat/stream`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg, userId: user?._id }),
+        body: JSON.stringify({ message: userMsg, userId: user?.id }),
       });
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
@@ -54,7 +54,7 @@ export default function ChatPage() {
         }
       }
       addChatCoins();
-      try { const saveRes = await chatService.saveMessage({ userId: user?._id || "", message: userMsg, response: fullResponse, sessionId: sessionId || undefined }); if (saveRes.sessionId) setSessionId(saveRes.sessionId); } catch {}
+      try { const saveRes = await chatService.saveMessage({ userId: user?.id || "", message: userMsg, response: fullResponse, sessionId: sessionId || undefined }); if (saveRes.sessionId) setSessionId(saveRes.sessionId); } catch {}
     } catch {
       setMessages(prev => { const updated = [...prev]; updated[updated.length - 1] = { role: "assistant", content: "Sorry, I couldn't process your message." }; return updated; });
       toast.error("Failed to send message");

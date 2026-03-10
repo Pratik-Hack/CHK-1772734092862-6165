@@ -20,6 +20,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<_ChatMessage> _messages = [];
   bool _isLoading = false;
+  String? _medicalContext;
 
   @override
   void initState() {
@@ -27,9 +28,21 @@ class _ChatScreenState extends State<ChatScreen> {
     // Add initial greeting
     _messages.add(_ChatMessage(
       text:
-          "Hello! I'm your MedicoScope medical assistant. I can help you understand your symptoms, provide general health guidance, and advise when to see a doctor. How can I help you today?",
+          "Hello! I'm your MedicoScope medical assistant. I can help you understand your symptoms, provide general health guidance, and advise when to see a doctor. I also have access to your health data — vitals, scan results, and MindSpace check-ins. How can I help you today?",
       isUser: false,
     ));
+    _loadMedicalContext();
+  }
+
+  Future<void> _loadMedicalContext() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token != null && authProvider.isPatient) {
+      final ctx = await ChatService.fetchMedicalContext(token);
+      if (ctx.isNotEmpty) {
+        _medicalContext = ctx;
+      }
+    }
   }
 
   @override
@@ -75,6 +88,7 @@ class _ChatScreenState extends State<ChatScreen> {
         message: text,
         sessionId: sessionId,
         patientProfile: patientProfile,
+        medicalContext: _medicalContext,
       );
 
       setState(() {

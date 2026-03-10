@@ -47,11 +47,11 @@ export default function MindSpacePage() {
     setAnalyzing(true);
     try {
       const file = new File([audioBlob], "mindspace.webm", { type: audioBlob.type });
-      const res = await mentalHealthService.analyze(file, user?._id || "");
+      const res = await mentalHealthService.analyze(file, user?.id || "");
       setResult(res.data || res);
       addMindSpaceCoins();
       toast.success("Analysis complete! +5 coins earned");
-      try { await mentalHealthService.saveSession({ userId: user?._id || "", result: res.data || res }); } catch {}
+      try { await mentalHealthService.saveSession({ userId: user?.id || "", result: res.data || res }); } catch {}
     } catch { toast.error("Analysis failed"); }
     finally { setAnalyzing(false); }
   };

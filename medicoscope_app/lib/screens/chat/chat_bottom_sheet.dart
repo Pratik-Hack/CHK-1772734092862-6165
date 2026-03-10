@@ -127,6 +127,27 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
           }
         }
       }
+
+      // MindSpace mental health check-ins
+      final mindspace =
+          List<Map<String, dynamic>>.from(data['mindspace'] ?? []);
+      if (mindspace.isNotEmpty) {
+        _hasHealthData = true;
+        parts.add('\n--- Recent MindSpace Mental Health Check-ins ---');
+        for (final s in mindspace) {
+          final date = s['date'] ?? '';
+          final urgency = s['urgency'] ?? 'low';
+          final transcript = s['transcript'] ?? '';
+          final aiResponse = s['aiResponse'] ?? '';
+          parts.add(
+            '- Check-in on ${_formatDate(date)} (urgency: $urgency):'
+            '\n  Patient said: "$transcript"',
+          );
+          if (aiResponse.isNotEmpty) {
+            parts.add('  AI Response: $aiResponse');
+          }
+        }
+      }
     } catch (e) {
       debugPrint('Medical summary fetch failed: $e');
       // Continue with basic profile — the chatbot will still work
@@ -138,8 +159,8 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
     if (mounted) {
       setState(() {
         final greeting = _hasHealthData
-            ? "Hello! I'm your MedicoScope assistant. I can see your recent scans, vitals, and health data. How can I help you today?"
-            : "Hello! I'm your MedicoScope assistant. I don't have any health data loaded yet — try running a scan or vitals session first. I can still answer general medical questions!";
+            ? "Hello! I'm your MedicoScope assistant. I can see your recent scans, vitals, and MindSpace check-ins. Ask me anything about your health data!"
+            : "Hello! I'm your MedicoScope assistant. I don't have any health data loaded yet — try running a scan, vitals session, or MindSpace check-in first. I can still answer general medical questions!";
         _messages.add(_ChatMsg(text: greeting, isUser: false));
       });
     }
@@ -177,12 +198,14 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
 
     try {
       // Use streaming endpoint for real-time token delivery
-      final lang = Provider.of<LocaleProvider>(context, listen: false).languageCode;
+      final lang =
+          Provider.of<LocaleProvider>(context, listen: false).languageCode;
       final stream = ChatService.sendMessageStream(
         message: text,
         sessionId: sessionId,
         patientProfile: _medicalProfile,
         language: lang,
+        medicalContext: _medicalProfile,
       );
 
       await for (final token in stream) {
@@ -259,8 +282,7 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
         return Container(
           decoration: BoxDecoration(
             color: isDark ? AppTheme.darkBackground : const Color(0xFFF5F5F5),
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.3),
@@ -412,15 +434,13 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
                           horizontal: 14,
                           vertical: 10,
                         ),
-                        itemCount: _messages.length +
-                            (_isLoading ? 1 : 0),
+                        itemCount: _messages.length + (_isLoading ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == _messages.length && _isLoading) {
                             // Show streaming text if we have it, otherwise typing dots
                             if (_streamingText.isNotEmpty) {
                               return _buildBubble(
-                                _ChatMsg(
-                                    text: _streamingText, isUser: false),
+                                _ChatMsg(text: _streamingText, isUser: false),
                                 isDark,
                               );
                             }
@@ -611,8 +631,7 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
             ),
             const SizedBox(width: 8),
             GlassCard(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               borderRadius: 14,
               child: Row(
                 mainAxisSize: MainAxisSize.min,

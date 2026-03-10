@@ -12,7 +12,7 @@ export default function AlertsPage() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
 
-  useEffect(() => { vitalsService.getPatientAlerts(user?._id || "").then(res => setAlerts(Array.isArray(res) ? res : res.data || [])).catch(() => {}).finally(() => setLoading(false)); }, [user]);
+  useEffect(() => { vitalsService.getPatientAlerts(user?.id || "").then(res => setAlerts(Array.isArray(res) ? res : [])).catch(() => {}).finally(() => setLoading(false)); }, [user]);
 
   return (
     <DashboardLayout>

@@ -97,6 +97,7 @@ class ChatRequest(BaseModel):
     session_id: str = "default"
     language: str = "en"
     medical_context: Optional[str] = None
+    patient_profile: Optional[str] = None
 
 class RewardRedeemRequest(BaseModel):
     reward_type: str
@@ -109,6 +110,42 @@ def get_session_history(session_id: str) -> list:
     if session_id not in session_histories:
         session_histories[session_id] = []
     return session_histories[session_id]
+
+
+def _build_system_prompt(
+    lang_instruction: str,
+    medical_json: str,
+    medical_context: Optional[str],
+    patient_profile: Optional[str],
+) -> str:
+    """Build the full system prompt with all available patient context."""
+    system_template = f"""You are a highly capable, conversational medical assistant for MedicoScope.
+Your role is to help users understand their symptoms, provide general health guidance, and advise when to see a doctor.
+You have FULL access to all the patient's data from the MedicoScope app, including their vitals readings (BP, heart rate, SpO2),
+AI detection scan results (skin, chest X-ray, brain MRI), MindSpace mental health check-in transcripts,
+medical conditions, medications, and health history.
+
+IMPORTANT RULES:
+1. Always be empathetic and supportive.
+2. Never diagnose — only provide general information.
+3. For severe symptoms, always advise seeking immediate medical attention.
+4. When the patient asks about their health data (BP, vitals, scans, MindSpace sessions), refer to the PATIENT DATA below.
+5. You can correlate data across different sources — e.g., if vitals show high BP and MindSpace shows stress, mention the connection.
+6. If the patient mentions something they told MindSpace, you should know about it from their MindSpace transcripts.
+7. {lang_instruction}
+
+MEDICAL KNOWLEDGE BASE:
+{medical_json}
+"""
+    if patient_profile:
+        escaped_profile = patient_profile.replace("{", "{{").replace("}", "}}")
+        system_template += f"\n\nPATIENT PROFILE:\n{escaped_profile}"
+
+    if medical_context:
+        escaped_context = medical_context.replace("{", "{{").replace("}", "}}")
+        system_template += f"\n\nPATIENT DATA (from MedicoScope app — use this to answer patient questions):\n{escaped_context}"
+
+    return system_template
 
 
 # ── Routes ──────────────────────────────────────────────────────────────────
@@ -129,21 +166,7 @@ async def chat(req: ChatRequest):
         # Escape curly braces in JSON so LangChain doesn't treat them as template vars
         medical_json = json.dumps(MEDICAL_DATA, indent=2).replace("{", "{{").replace("}", "}}")
 
-        system_template = f"""You are a highly capable, conversational medical triage assistant for HearMe.
-Your role is to help users understand their symptoms, provide general health guidance, and advise when to see a doctor.
-
-IMPORTANT RULES:
-1. Always be empathetic and supportive.
-2. Never diagnose — only provide general information.
-3. For severe symptoms, always advise seeking immediate medical attention.
-4. {lang_instruction}
-
-MEDICAL KNOWLEDGE BASE:
-{medical_json}
-"""
-        if req.medical_context:
-            escaped_context = req.medical_context.replace("{", "{{").replace("}", "}}")
-            system_template += f"\n\nPatient Context: {escaped_context}"
+        system_template = _build_system_prompt(lang_instruction, medical_json, req.medical_context, req.patient_profile)
 
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_template),
@@ -177,21 +200,7 @@ async def chat_stream(req: ChatRequest):
 
             medical_json = json.dumps(MEDICAL_DATA, indent=2).replace("{", "{{").replace("}", "}}")
 
-            system_template = f"""You are a highly capable, conversational medical triage assistant for HearMe.
-Your role is to help users understand their symptoms, provide general health guidance, and advise when to see a doctor.
-
-IMPORTANT RULES:
-1. Always be empathetic and supportive.
-2. Never diagnose — only provide general information.
-3. For severe symptoms, always advise seeking immediate medical attention.
-4. {lang_instruction}
-
-MEDICAL KNOWLEDGE BASE:
-{medical_json}
-"""
-            if req.medical_context:
-                escaped_context = req.medical_context.replace("{", "{{").replace("}", "}}")
-                system_template += f"\n\nPatient Context: {escaped_context}"
+            system_template = _build_system_prompt(lang_instruction, medical_json, req.medical_context, req.patient_profile)
 
             prompt = ChatPromptTemplate.from_messages([
                 ("system", system_template),

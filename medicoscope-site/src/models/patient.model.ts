@@ -19,6 +19,8 @@ export interface PatientModel {
   linkedDoctorId?: string;
   dateOfBirth: string;
   bloodGroup: string;
+  age?: number;
+  gender?: string;
 }
 
 export interface PatientRegisterData {

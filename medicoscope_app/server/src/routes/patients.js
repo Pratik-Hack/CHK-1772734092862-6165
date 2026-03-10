@@ -6,6 +6,7 @@ const Patient = require('../models/Patient');
 const Doctor = require('../models/Doctor');
 const DetectionRecord = require('../models/DetectionRecord');
 const VitalsSummary = require('../models/VitalsSummary');
+const MindSpaceSession = require('../models/MindSpaceSession');
 
 const router = express.Router();
 
@@ -92,8 +93,8 @@ router.get('/doctor', auth, roleCheck('patient'), async (req, res) => {
 // GET /api/patients/medical-summary - aggregated data for chatbot context
 router.get('/medical-summary', auth, roleCheck('patient'), async (req, res) => {
   try {
-    // Fetch patient profile, recent detections, and recent vitals in parallel
-    const [patient, detections, vitalsSummaries] = await Promise.all([
+    // Fetch patient profile, recent detections, vitals, and mindspace sessions in parallel
+    const [patient, detections, vitalsSummaries, mindspaceSessions] = await Promise.all([
       Patient.findOne({ userId: req.user._id }),
       DetectionRecord.find({ patientId: req.user._id })
         .sort({ createdAt: -1 })
@@ -102,6 +103,11 @@ router.get('/medical-summary', auth, roleCheck('patient'), async (req, res) => {
       VitalsSummary.find({ patientId: req.user._id })
         .sort({ createdAt: -1 })
         .limit(5),
+      MindSpaceSession.find({ userId: req.user._id })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .select('transcript userMessage urgency coinsEarned createdAt')
+        .lean(),
     ]);
 
     res.json({
@@ -129,6 +135,12 @@ router.get('/medical-summary', auth, roleCheck('patient'), async (req, res) => {
         alerts: v.alerts || [],
         duration: v.duration,
         date: v.createdAt,
+      })),
+      mindspace: mindspaceSessions.map(s => ({
+        transcript: s.transcript,
+        aiResponse: s.userMessage,
+        urgency: s.urgency,
+        date: s.createdAt,
       })),
     });
   } catch (error) {

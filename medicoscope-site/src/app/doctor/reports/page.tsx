@@ -11,7 +11,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
-  useEffect(() => { detectionService.getMyDetections().then(res => setReports(Array.isArray(res) ? res : res.data || [])).catch(() => {}).finally(() => setLoading(false)); }, []);
+  useEffect(() => { detectionService.getMyDetections().then(res => setReports(Array.isArray(res) ? res : [])).catch(() => {}).finally(() => setLoading(false)); }, []);
 
   const filtered = filter === "all" ? reports : reports.filter(r => r.category === filter);
 

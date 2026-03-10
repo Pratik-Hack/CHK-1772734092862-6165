@@ -10,7 +10,7 @@ export default function ClaimedRewardsPage() {
   const [rewards, setRewards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { rewardsService.getClaimedRewards().then(res => setRewards(Array.isArray(res) ? res : res.data || [])).catch(() => {}).finally(() => setLoading(false)); }, []);
+  useEffect(() => { rewardsService.getClaimedRewards().then(res => setRewards(Array.isArray(res) ? res : [])).catch(() => {}).finally(() => setLoading(false)); }, []);
 
   return (
     <DashboardLayout>

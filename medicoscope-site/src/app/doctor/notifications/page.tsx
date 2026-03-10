@@ -18,8 +18,8 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     Promise.all([
-      vitalsService.getDoctorAlerts(user?._id || "").catch(() => ({ data: [] })),
-      mentalHealthService.getDoctorNotifications(user?._id || "").catch(() => ({ data: [] })),
+      vitalsService.getDoctorAlerts(user?.id || "").catch(() => ({ data: [] })),
+      mentalHealthService.getDoctorNotifications(user?.id || "").catch(() => ({ data: [] })),
     ]).then(([vitals, mindspace]) => {
       setVitalAlerts(Array.isArray(vitals) ? vitals : vitals.data || []);
       setMindspaceAlerts(Array.isArray(mindspace) ? mindspace : mindspace.data || []);

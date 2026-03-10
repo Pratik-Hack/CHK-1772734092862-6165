@@ -20,7 +20,7 @@ export default function RewardsPage() {
     setRedeeming(item.id);
     try {
       deductCoins(item.cost);
-      await rewardsService.redeem({ userId: user?._id || "", itemId: item.id, cost: item.cost });
+      await rewardsService.redeem({ userId: user?.id || "", itemId: item.id, cost: item.cost });
       toast.success(`Redeemed: ${item.name}!`);
     } catch { toast.error("Failed to redeem"); }
     finally { setRedeeming(null); }

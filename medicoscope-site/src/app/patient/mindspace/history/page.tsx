@@ -12,7 +12,7 @@ export default function MindSpaceHistoryPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { mentalHealthService.getHistory().then(res => { setSessions(Array.isArray(res) ? res : res.data || []); }).catch(() => {}).finally(() => setLoading(false)); }, []);
+  useEffect(() => { mentalHealthService.getHistory().then(res => { setSessions(Array.isArray(res) ? res : []); }).catch(() => {}).finally(() => setLoading(false)); }, []);
 
   const handleDelete = async (id: string) => {
     try { await mentalHealthService.deleteSession(id); setSessions(prev => prev.filter(s => s._id !== id && s.id !== id)); toast.success("Deleted"); } catch { toast.error("Failed"); }

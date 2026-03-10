@@ -24,7 +24,7 @@ export default function VitalsPage() {
       const vital = generateVital();
       addDataPoint(vital);
       try {
-        const res = await vitalsService.tick({ ...vital, patientId: user?._id || "" });
+        const res = await vitalsService.tick({ ...vital, patientId: user?.id || "" });
         if (res.alerts?.length) res.alerts.forEach((a: any) => { addAlert(a); toast.error(`Alert: ${a.message}`); });
       } catch {}
     }, 3000);
@@ -33,12 +33,12 @@ export default function VitalsPage() {
 
   const startMonitoring = async () => {
     setLoading(true);
-    try { const res = await vitalsService.startSession(user?._id || ""); setSessionId(res.sessionId); setMonitoring(true); toast.success("Monitoring started"); }
+    try { const res = await vitalsService.startSession(user?.id || ""); setSessionId(res.sessionId); setMonitoring(true); toast.success("Monitoring started"); }
     catch { toast.error("Failed to start"); } finally { setLoading(false); }
   };
 
   const stopMonitoring = async () => {
-    try { await vitalsService.stopSession(user?._id || ""); setMonitoring(false); toast.success("Monitoring stopped"); }
+    try { await vitalsService.stopSession(user?.id || ""); setMonitoring(false); toast.success("Monitoring stopped"); }
     catch { toast.error("Failed to stop"); }
   };
 
