@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:medicoscope/core/constants/api_constants.dart';
 import 'package:medicoscope/services/api_service.dart';
 
+class _StreamUnavailable implements Exception {}
+
 class ChatService {
   /// Non-streaming fallback — waits for full response.
   static Future<String> sendMessage({
@@ -27,7 +29,7 @@ class ChatService {
             if (medicalContext != null) 'medical_context': medicalContext,
           }),
         )
-        .timeout(const Duration(seconds: 30));
+        .timeout(const Duration(seconds: 60));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -40,6 +42,7 @@ class ChatService {
   }
 
   /// Streaming method — yields token chunks as they arrive via SSE.
+  /// Falls back to non-streaming `/chat` if `/chat/stream` is unavailable.
   static Stream<String> sendMessageStream({
     required String message,
     required String sessionId,
@@ -47,10 +50,7 @@ class ChatService {
     String language = 'en',
     String? medicalContext,
   }) async* {
-    final url = Uri.parse('${ApiConstants.chatbotBaseUrl}/chat/stream');
-    final request = http.Request('POST', url);
-    request.headers['Content-Type'] = 'application/json';
-    request.body = jsonEncode({
+    final body = jsonEncode({
       'message': message,
       'session_id': sessionId,
       'patient_profile': patientProfile,
@@ -58,49 +58,90 @@ class ChatService {
       if (medicalContext != null) 'medical_context': medicalContext,
     });
 
-    final client = http.Client();
+    // ── Try streaming endpoint first ──────────────────────────────────
+    bool streamWorked = false;
     try {
-      final response =
-          await client.send(request).timeout(const Duration(seconds: 30));
+      final url = Uri.parse('${ApiConstants.chatbotBaseUrl}/chat/stream');
+      final request = http.Request('POST', url);
+      request.headers['Content-Type'] = 'application/json';
+      request.body = body;
 
-      if (response.statusCode == 503) {
-        throw Exception('Chatbot is warming up. Please try again in a moment.');
-      }
-      if (response.statusCode != 200) {
-        throw Exception('Chatbot error: ${response.statusCode}');
-      }
+      final client = http.Client();
+      try {
+        final response =
+            await client.send(request).timeout(const Duration(seconds: 60));
 
-      String buffer = '';
-      await for (final chunk in response.stream.transform(utf8.decoder)) {
-        buffer += chunk;
-        final lines = buffer.split('\n');
-        buffer = lines.removeLast(); // keep incomplete line in buffer
+        if (response.statusCode == 503) {
+          throw Exception(
+              'Chatbot is warming up. Please try again in a moment.');
+        }
+        if (response.statusCode == 404 || response.statusCode == 405) {
+          // Streaming endpoint not available — fall through to non-streaming
+          throw _StreamUnavailable();
+        }
+        if (response.statusCode != 200) {
+          throw Exception('Chatbot error: ${response.statusCode}');
+        }
 
-        for (final line in lines) {
-          final trimmed = line.trim();
-          if (trimmed.startsWith('data: ')) {
-            final data = trimmed.substring(6).trim();
-            if (data == '[DONE]') return;
-            try {
-              final parsed = jsonDecode(data) as Map<String, dynamic>;
-              if (parsed.containsKey('error')) {
-                throw Exception(parsed['error']);
+        String buffer = '';
+        bool gotTokens = false;
+        await for (final chunk in response.stream.transform(utf8.decoder)) {
+          buffer += chunk;
+          final lines = buffer.split('\n');
+          buffer = lines.removeLast();
+
+          for (final line in lines) {
+            final trimmed = line.trim();
+            if (trimmed.startsWith('data: ')) {
+              final data = trimmed.substring(6).trim();
+              if (data == '[DONE]') {
+                streamWorked = true;
+                return;
               }
-              if (parsed.containsKey('token') && parsed['token'] != null) {
-                yield parsed['token'] as String;
+              try {
+                final parsed = jsonDecode(data) as Map<String, dynamic>;
+                if (parsed.containsKey('error')) {
+                  throw Exception(parsed['error']);
+                }
+                if (parsed.containsKey('token') && parsed['token'] != null) {
+                  gotTokens = true;
+                  yield parsed['token'] as String;
+                }
+              } catch (e) {
+                if (e is Exception && e.toString().contains('Chatbot')) {
+                  rethrow;
+                }
               }
-            } catch (e) {
-              if (e is Exception && e.toString().contains('Chatbot')) {
-                rethrow;
-              }
-              // Skip malformed SSE lines
             }
           }
         }
+
+        if (gotTokens) {
+          streamWorked = true;
+          return;
+        }
+      } finally {
+        client.close();
       }
-    } finally {
-      client.close();
+    } on _StreamUnavailable {
+      // Fall through to non-streaming
+    } catch (e) {
+      final msg = e.toString();
+      // If it's a 503 warming up, rethrow immediately — don't retry
+      if (msg.contains('warming up') || msg.contains('503')) rethrow;
+      // For other errors (timeout, connection refused), try non-streaming
+      if (streamWorked) rethrow;
     }
+
+    // ── Fallback: non-streaming ───────────────────────────────────────
+    final fullResponse = await sendMessage(
+      message: message,
+      sessionId: sessionId,
+      patientProfile: patientProfile,
+      language: language,
+      medicalContext: medicalContext,
+    );
+    yield fullResponse;
   }
 
   /// Save chat message pair to DB

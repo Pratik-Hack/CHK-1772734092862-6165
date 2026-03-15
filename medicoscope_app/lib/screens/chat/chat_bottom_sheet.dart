@@ -33,7 +33,8 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
   final ScrollController _scrollController = ScrollController();
   final List<_ChatMsg> _messages = [];
   bool _isLoading = false;
-  String _medicalProfile = '';
+  String _patientProfile = '';
+  String _medicalContext = '';
   bool _profileLoaded = false;
   bool _hasHealthData = false;
   String _streamingText = '';
@@ -55,13 +56,17 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     if (auth.token == null || auth.user == null) return;
 
-    final parts = <String>[
+    // Basic patient profile (sent as patientProfile)
+    final profileParts = <String>[
       'Name: ${auth.user!.name}',
       'Role: ${auth.user!.role}',
     ];
     if (auth.user!.phone != null && auth.user!.phone!.isNotEmpty) {
-      parts.add('Phone: ${auth.user!.phone}');
+      profileParts.add('Phone: ${auth.user!.phone}');
     }
+
+    // Full medical context (sent as medicalContext)
+    final contextParts = <String>[];
 
     try {
       final api = ApiService(token: auth.token);
@@ -72,17 +77,23 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
       // Patient profile
       final patient = data['patient'] as Map<String, dynamic>? ?? {};
       final conditions = List<String>.from(patient['conditions'] ?? []);
-      final medications = List<String>.from(patient['medications'] ?? []);
+      final medications = List.from(patient['medications'] ?? []);
       final bloodGroup = patient['bloodGroup'] ?? '';
       final dob = patient['dateOfBirth'];
 
-      if (bloodGroup.isNotEmpty) parts.add('Blood Group: $bloodGroup');
-      if (dob != null) parts.add('Date of Birth: $dob');
+      if (bloodGroup.isNotEmpty) contextParts.add('Blood Group: $bloodGroup');
+      if (dob != null) contextParts.add('Date of Birth: $dob');
       if (conditions.isNotEmpty) {
-        parts.add('Medical Conditions: ${conditions.join(', ')}');
+        contextParts.add('Medical Conditions: ${conditions.join(', ')}');
       }
       if (medications.isNotEmpty) {
-        parts.add('Current Medications: ${medications.join(', ')}');
+        final medStr = medications.map((m) {
+          if (m is Map) {
+            return '${m['name'] ?? ''} (${m['dosage'] ?? ''}, ${m['frequency'] ?? ''})';
+          }
+          return m.toString();
+        }).join('; ');
+        contextParts.add('Current Medications: $medStr');
       }
 
       // Recent detections
@@ -90,7 +101,7 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
           List<Map<String, dynamic>>.from(data['detections'] ?? []);
       if (detections.isNotEmpty) {
         _hasHealthData = true;
-        parts.add('\n--- Recent Detection Results ---');
+        contextParts.add('\n--- Recent Detection Results ---');
         for (final d in detections) {
           final cat = d['category'] ?? '';
           final cls = d['className'] ?? '';
@@ -100,9 +111,9 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
           final confStr = cat == 'heart_sound'
               ? '${conf?.toStringAsFixed(0)} BPM'
               : '${((conf ?? 0) * 100).toStringAsFixed(1)}% confidence';
-          parts.add('- [$cat] $cls ($confStr) on ${_formatDate(date)}');
+          contextParts.add('- [$cat] $cls ($confStr) on ${_formatDate(date)}');
           if (desc.isNotEmpty) {
-            parts.add('  Description: $desc');
+            contextParts.add('  Description: $desc');
           }
         }
       }
@@ -111,10 +122,10 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
       final vitals = List<Map<String, dynamic>>.from(data['vitals'] ?? []);
       if (vitals.isNotEmpty) {
         _hasHealthData = true;
-        parts.add('\n--- Recent Vitals Sessions ---');
+        contextParts.add('\n--- Recent Vitals Sessions ---');
         for (final v in vitals) {
           final date = v['date'] ?? '';
-          parts.add(
+          contextParts.add(
             '- HR: avg ${v['avgHeartRate']?.toStringAsFixed(0)}'
             ' (${v['minHeartRate']?.toStringAsFixed(0)}-${v['maxHeartRate']?.toStringAsFixed(0)})'
             ', BP: ${v['avgSystolic']?.toStringAsFixed(0)}/${v['avgDiastolic']?.toStringAsFixed(0)}'
@@ -123,7 +134,7 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
           );
           final alerts = List<Map<String, dynamic>>.from(v['alerts'] ?? []);
           for (final a in alerts) {
-            parts.add('  ALERT: ${a['message']}');
+            contextParts.add('  ALERT: ${a['message']}');
           }
         }
       }
@@ -133,18 +144,18 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
           List<Map<String, dynamic>>.from(data['mindspace'] ?? []);
       if (mindspace.isNotEmpty) {
         _hasHealthData = true;
-        parts.add('\n--- Recent MindSpace Mental Health Check-ins ---');
+        contextParts.add('\n--- Recent MindSpace Mental Health Check-ins ---');
         for (final s in mindspace) {
           final date = s['date'] ?? '';
           final urgency = s['urgency'] ?? 'low';
           final transcript = s['transcript'] ?? '';
           final aiResponse = s['aiResponse'] ?? '';
-          parts.add(
+          contextParts.add(
             '- Check-in on ${_formatDate(date)} (urgency: $urgency):'
             '\n  Patient said: "$transcript"',
           );
           if (aiResponse.isNotEmpty) {
-            parts.add('  AI Response: $aiResponse');
+            contextParts.add('  AI Response: $aiResponse');
           }
         }
       }
@@ -153,7 +164,8 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
       // Continue with basic profile — the chatbot will still work
     }
 
-    _medicalProfile = parts.join('\n');
+    _patientProfile = profileParts.join('\n');
+    _medicalContext = contextParts.isNotEmpty ? contextParts.join('\n') : '';
     _profileLoaded = true;
 
     if (mounted) {
@@ -203,9 +215,9 @@ class _ChatBottomSheetState extends State<_ChatBottomSheet> {
       final stream = ChatService.sendMessageStream(
         message: text,
         sessionId: sessionId,
-        patientProfile: _medicalProfile,
+        patientProfile: _patientProfile,
         language: lang,
-        medicalContext: _medicalProfile,
+        medicalContext: _medicalContext.isNotEmpty ? _medicalContext : null,
       );
 
       await for (final token in stream) {

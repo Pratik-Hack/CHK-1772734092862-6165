@@ -209,6 +209,8 @@ class AppStrings {
       'initializing': 'Initializing...',
       'waiting_for_data': 'Waiting for data...',
       'preventive_alerts': 'Preventive Alerts',
+      'all_vitals_normal':
+          'All vitals are within normal range. You will be notified if anything changes.',
 
       // Mental Health
       'share_your_day': 'Share your day, earn rewards',
@@ -296,6 +298,7 @@ class AppStrings {
       'stop_recording': 'Stop Recording',
       'analyze_heart_sound': 'Analyze Heart Sound',
       'uploading_heart_sound': 'Uploading heart sound...',
+      'extracting_features': 'Extracting audio features (offline)...',
       'analyzing_audio': 'Analyzing audio patterns...',
       'detecting_cardiac': 'Detecting cardiac abnormalities...',
       'generating_heart_rate': 'Generating heart rate data...',
@@ -622,6 +625,8 @@ class AppStrings {
       'initializing': 'प्रारंभ हो रहा है...',
       'waiting_for_data': 'डेटा की प्रतीक्षा...',
       'preventive_alerts': 'निवारक अलर्ट',
+      'all_vitals_normal':
+          'सभी महत्वपूर्ण संकेत सामान्य सीमा में हैं। कोई बदलाव होने पर आपको सूचित किया जाएगा।',
       'share_your_day': 'अपना दिन साझा करें, पुरस्कार कमाएँ',
       'listening': 'सुन रहा हूँ...',
       'analyzing': 'विश्लेषण हो रहा है...',
@@ -699,6 +704,7 @@ class AppStrings {
       'stop_recording': 'रिकॉर्डिंग बंद करें',
       'analyze_heart_sound': 'हृदय ध्वनि का विश्लेषण करें',
       'uploading_heart_sound': 'हृदय ध्वनि अपलोड हो रही है...',
+      'extracting_features': 'ऑडियो विशेषताएँ निकाल रहा है (ऑफ़लाइन)...',
       'analyzing_audio': 'ऑडियो पैटर्न का विश्लेषण...',
       'detecting_cardiac': 'कार्डियक असामान्यताएँ पहचान रहा है...',
       'generating_heart_rate': 'हृदय गति डेटा बन रहा है...',

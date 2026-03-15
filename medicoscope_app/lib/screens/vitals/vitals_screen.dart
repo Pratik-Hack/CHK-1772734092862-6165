@@ -621,12 +621,11 @@ class _VitalsScreenState extends State<VitalsScreen>
 
                 const SizedBox(height: 12),
 
-                // Alerts section
-                if (vitals.alerts.isNotEmpty)
-                  _buildAlertsSection(isDark, vitals, lang)
-                      .animate()
-                      .fadeIn(duration: 400.ms)
-                      .slideY(begin: 0.1, end: 0),
+                // Alerts section — always visible
+                _buildAlertsSection(isDark, vitals, lang)
+                    .animate()
+                    .fadeIn(duration: 400.ms)
+                    .slideY(begin: 0.1, end: 0),
 
                 const SizedBox(height: 12),
 
@@ -851,8 +850,15 @@ class _VitalsScreenState extends State<VitalsScreen>
       children: [
         Row(
           children: [
-            const Icon(Icons.warning_amber_rounded,
-                color: Colors.amber, size: 20),
+            Icon(
+              vitals.alerts.isEmpty
+                  ? Icons.check_circle_outline_rounded
+                  : Icons.warning_amber_rounded,
+              color: vitals.alerts.isEmpty
+                  ? const Color(0xFF4CAF50)
+                  : Colors.amber,
+              size: 20,
+            ),
             const SizedBox(width: 8),
             Text(
               AppStrings.get('preventive_alerts', lang),
@@ -862,10 +868,51 @@ class _VitalsScreenState extends State<VitalsScreen>
                 color: isDark ? AppTheme.darkTextLight : AppTheme.textDark,
               ),
             ),
+            const Spacer(),
+            if (vitals.alerts.isNotEmpty)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${vitals.alerts.length}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 8),
-        ...vitals.alerts.map((alert) => _buildAlertCard(alert, isDark)),
+        if (vitals.alerts.isEmpty)
+          GlassCard(
+            padding: const EdgeInsets.all(AppTheme.spacingMedium),
+            borderRadius: AppTheme.radiusMedium,
+            child: Row(
+              children: [
+                const Icon(Icons.shield_rounded,
+                    color: Color(0xFF4CAF50), size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    AppStrings.get('all_vitals_normal', lang),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color:
+                          isDark ? AppTheme.darkTextGray : AppTheme.textGray,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          ...vitals.alerts.map((alert) => _buildAlertCard(alert, isDark)),
       ],
     );
   }

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -386,15 +386,27 @@ Make each tip detailed and evidence-based. {lang_instruction}""",
 
 # ── Vitals Monitoring ───────────────────────────────────────────────────────
 
-VITALS_SCENARIOS = ["resting", "mild_activity", "post_exercise", "sleeping", "stressed"]
+VITALS_SCENARIOS = [
+    "resting", "mild_activity", "post_exercise", "sleeping", "stressed",
+    # Abnormal scenarios that will trigger alerts
+    "tachycardia", "bradycardia", "hypertension", "hypotension", "hypoxia",
+    "deteriorating",
+]
 
 # Normal baseline ranges
 VITALS_BASELINES = {
-    "resting":       {"hr": (65, 80),  "sys": (110, 125), "dia": (70, 80),  "spo2": (96, 99)},
-    "mild_activity": {"hr": (80, 100), "sys": (115, 135), "dia": (72, 85),  "spo2": (95, 98)},
-    "post_exercise": {"hr": (100,130), "sys": (125, 145), "dia": (75, 88),  "spo2": (94, 98)},
-    "sleeping":      {"hr": (55, 70),  "sys": (100, 115), "dia": (60, 75),  "spo2": (95, 99)},
-    "stressed":      {"hr": (85, 110), "sys": (125, 145), "dia": (80, 92),  "spo2": (95, 98)},
+    "resting":       {"hr": (65, 80),   "sys": (110, 125), "dia": (70, 80),   "spo2": (96, 99)},
+    "mild_activity": {"hr": (80, 100),  "sys": (115, 135), "dia": (72, 85),   "spo2": (95, 98)},
+    "post_exercise": {"hr": (100, 130), "sys": (125, 145), "dia": (75, 88),   "spo2": (94, 98)},
+    "sleeping":      {"hr": (55, 70),   "sys": (100, 115), "dia": (60, 75),   "spo2": (95, 99)},
+    "stressed":      {"hr": (85, 110),  "sys": (125, 145), "dia": (80, 92),   "spo2": (95, 98)},
+    # Abnormal baselines — these generate values that breach thresholds
+    "tachycardia":   {"hr": (135, 165), "sys": (130, 150), "dia": (80, 95),   "spo2": (93, 97)},
+    "bradycardia":   {"hr": (38, 48),   "sys": (85, 100),  "dia": (55, 65),   "spo2": (93, 96)},
+    "hypertension":  {"hr": (85, 105),  "sys": (155, 185), "dia": (96, 115),  "spo2": (94, 97)},
+    "hypotension":   {"hr": (90, 115),  "sys": (70, 88),   "dia": (38, 55),   "spo2": (92, 96)},
+    "hypoxia":       {"hr": (95, 120),  "sys": (115, 135), "dia": (72, 85),   "spo2": (82, 91)},
+    "deteriorating": {"hr": (70, 85),   "sys": (110, 125), "dia": (70, 80),   "spo2": (96, 99)},
 }
 
 ALERT_THRESHOLDS = {
@@ -409,9 +421,20 @@ ALERT_THRESHOLDS = {
 def _generate_vitals(session: dict) -> list[dict]:
     """Generate 1-3 simulated data points for a tick."""
     scenario = session["scenario"]
-    baseline = VITALS_BASELINES[scenario]
     tick = session["tick_counter"]
     points = []
+
+    # For "deteriorating" scenario, progressively worsen vitals over time
+    if scenario == "deteriorating":
+        progress = min(tick / 30.0, 1.0)  # fully deteriorated by tick 30
+        baseline = {
+            "hr":   (70 + progress * 60,  85 + progress * 75),
+            "sys":  (110 + progress * 50,  125 + progress * 55),
+            "dia":  (70 + progress * 25,   80 + progress * 30),
+            "spo2": (96 - progress * 10,   99 - progress * 10),
+        }
+    else:
+        baseline = VITALS_BASELINES[scenario]
 
     count = random.randint(1, 3)
     for i in range(count):
@@ -427,6 +450,23 @@ def _generate_vitals(session: dict) -> list[dict]:
         sys_ = random.uniform(*baseline["sys"]) + drift * 0.5 + random.gauss(0, 4)
         dia = random.uniform(*baseline["dia"]) + drift * 0.3 + random.gauss(0, 2)
         spo2 = random.uniform(*baseline["spo2"]) + random.gauss(0, 0.5)
+
+        # ~15% chance of an abnormal spike/dip on any scenario (simulates
+        # real-world transient anomalies so alerts actually trigger)
+        if random.random() < 0.15:
+            anomaly = random.choice(["hr_high", "hr_low", "bp_high", "bp_low", "spo2_low"])
+            if anomaly == "hr_high":
+                hr = random.uniform(120, 160)
+            elif anomaly == "hr_low":
+                hr = random.uniform(38, 52)
+            elif anomaly == "bp_high":
+                sys_ = random.uniform(145, 185)
+                dia = random.uniform(92, 110)
+            elif anomaly == "bp_low":
+                sys_ = random.uniform(72, 88)
+                dia = random.uniform(40, 55)
+            elif anomaly == "spo2_low":
+                spo2 = random.uniform(84, 93)
 
         # Clamp to physiologically possible values
         hr = max(35, min(200, hr))
@@ -483,25 +523,31 @@ def _check_alerts(session: dict, points: list[dict]) -> list[dict]:
 def _make_alert(session: dict, alert_type: str, severity: str,
                 message: str, vital: str, current: float, predicted: float,
                 timestamp: str) -> dict:
+    now = datetime.utcnow().isoformat()
+    doctor_id = session.get("doctor_id", "")
+    emergency_phone = session.get("emergency_contact_phone", "")
     return {
         "id": str(uuid.uuid4()),
         "type": alert_type,
+        "alert_type": alert_type,
         "severity": severity,
         "message": message,
         "vital": vital,
         "current_value": current,
         "predicted_value": predicted,
         "timestamp": timestamp,
+        "created_at": now,
         "location": session.get("location", ""),
         "latitude": session.get("latitude", 0),
         "longitude": session.get("longitude", 0),
         "maps_url": f"https://www.google.com/maps?q={session.get('latitude',0)},{session.get('longitude',0)}",
         "emergency_contact_name": session.get("emergency_contact_name", ""),
-        "emergency_contact_phone": session.get("emergency_contact_phone", ""),
+        "emergency_contact_phone": emergency_phone,
         "patient_id": session.get("patient_id", ""),
         "patient_name": session.get("patient_name", ""),
-        "doctor_id": session.get("doctor_id", ""),
-        "created_at": datetime.utcnow().isoformat(),
+        "doctor_id": doctor_id,
+        "doctor_notified": bool(doctor_id),
+        "emergency_notified": bool(emergency_phone),
         "read": False,
     }
 
@@ -593,6 +639,53 @@ async def vitals_mark_alert_read(alert_id: str):
             if alert.get("id") == alert_id:
                 alert["read"] = True
     return {"status": "ok"}
+
+
+@app.post("/vitals/alerts")
+async def vitals_push_alert(req: Request):
+    """Receive a locally-generated alert from the Flutter client."""
+    data = await req.json()
+    alert_id = str(uuid.uuid4())
+    now = datetime.utcnow().isoformat()
+    alert_type = data.get("type", "threshold_breach")
+    doctor_id = data.get("doctor_id", "")
+    patient_id = data.get("patient_id", "")
+    has_doctor = bool(doctor_id)
+    has_emergency = bool(data.get("emergency_contact_phone", ""))
+
+    alert = {
+        "id": alert_id,
+        "session_id": data.get("session_id", ""),
+        "patient_id": patient_id,
+        "patient_name": data.get("patient_name", ""),
+        "doctor_id": doctor_id,
+        "type": alert_type,
+        "alert_type": alert_type,
+        "severity": data.get("severity", "warning"),
+        "message": data.get("message", ""),
+        "vital": data.get("vital", ""),
+        "current_value": data.get("current_value", 0),
+        "predicted_value": data.get("predicted_value", 0),
+        "timestamp": data.get("timestamp", now),
+        "created_at": data.get("timestamp", now),
+        "location": data.get("location", ""),
+        "latitude": data.get("latitude", 0),
+        "longitude": data.get("longitude", 0),
+        "maps_url": data.get("maps_url", ""),
+        "emergency_contact_name": data.get("emergency_contact_name", ""),
+        "emergency_contact_phone": data.get("emergency_contact_phone", ""),
+        "doctor_notified": has_doctor,
+        "emergency_notified": has_emergency,
+        "read": False,
+        "source": "client",
+    }
+
+    if doctor_id:
+        vitals_alerts.setdefault(f"doc_{doctor_id}", []).append(alert)
+    if patient_id:
+        vitals_alerts.setdefault(f"pat_{patient_id}", []).append(alert)
+
+    return {"status": "ok", "alert_id": alert_id}
 
 
 @app.delete("/vitals/alerts/{alert_id}")

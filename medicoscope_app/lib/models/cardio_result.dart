@@ -72,9 +72,9 @@ class CardioResult {
       case '1':
         return 'Aortic Stenosis';
       case '2':
-        return 'Mitral Regurgitation';
-      case '3':
         return 'Mitral Stenosis';
+      case '3':
+        return 'Mitral Regurgitation';
       case '4':
         return 'Mitral Valve Prolapse';
       default:

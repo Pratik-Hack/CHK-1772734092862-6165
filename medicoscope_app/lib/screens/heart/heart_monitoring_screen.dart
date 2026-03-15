@@ -122,13 +122,13 @@ class _HeartMonitoringScreenState extends State<HeartMonitoringScreen>
         Provider.of<LocaleProvider>(context, listen: false).languageCode;
     setState(() {
       _isProcessing = true;
-      _statusMessage = AppStrings.get('uploading_heart_sound', lang);
+      _statusMessage = AppStrings.get('extracting_features', lang);
     });
     _hourglassController.repeat();
 
-    // Cycle status messages
+    // Cycle status messages (offline-first, no upload needed)
     final messages = [
-      AppStrings.get('uploading_heart_sound', lang),
+      AppStrings.get('extracting_features', lang),
       AppStrings.get('analyzing_audio', lang),
       AppStrings.get('detecting_cardiac', lang),
       AppStrings.get('generating_heart_rate', lang),

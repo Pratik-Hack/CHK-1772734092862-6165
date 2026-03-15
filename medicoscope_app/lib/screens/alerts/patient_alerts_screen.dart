@@ -50,14 +50,61 @@ class _PatientAlertsScreenState extends State<PatientAlertsScreen> {
         patientId: patientId,
       );
       if (!mounted) return;
+
+      // Check for new critical/high alerts that arrived since last fetch
+      if (silent && alerts.isNotEmpty) {
+        final oldIds = _alerts.map((a) => a['id']).toSet();
+        final newCriticalAlerts = alerts.where((a) =>
+            !oldIds.contains(a['id']) &&
+            !(a['read'] ?? false) &&
+            (a['severity'] == 'critical' || a['severity'] == 'high'));
+        for (final alert in newCriticalAlerts) {
+          _showAlertNotification(alert);
+        }
+      }
+
       setState(() {
         _alerts = alerts;
-        if (!silent) _isLoading = false;
+        _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
-      if (!silent) setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _showAlertNotification(Map<String, dynamic> alert) {
+    if (!mounted) return;
+    final severity = alert['severity'] ?? 'high';
+    final isCritical = severity == 'critical';
+    final message = alert['message'] ?? 'New health alert detected';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isCritical ? Icons.emergency_rounded : Icons.warning_amber_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isCritical ? const Color(0xFFFF5252) : const Color(0xFFFF9800),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   Future<void> _markAsRead(String id) async {
@@ -100,7 +147,15 @@ class _PatientAlertsScreenState extends State<PatientAlertsScreen> {
     }
   }
 
+  /// Extract timestamp from alert — tries created_at, then timestamp field
+  String _getAlertTime(Map<String, dynamic> a) {
+    return (a['created_at'] as String?) ??
+        (a['timestamp'] as String?) ??
+        '';
+  }
+
   String _timeAgo(String isoDate) {
+    if (isoDate.isEmpty) return '';
     try {
       final date = DateTime.parse(isoDate);
       final diff = DateTime.now().toUtc().difference(date);
@@ -114,6 +169,7 @@ class _PatientAlertsScreenState extends State<PatientAlertsScreen> {
   }
 
   String _formatTimestamp(String isoDate) {
+    if (isoDate.isEmpty) return 'Unknown';
     try {
       final date = DateTime.parse(isoDate).toLocal();
       final hour = date.hour.toString().padLeft(2, '0');
@@ -374,7 +430,7 @@ class _PatientAlertsScreenState extends State<PatientAlertsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          (a['alert_type'] ?? severity)
+                          (a['alert_type'] ?? a['type'] ?? severity)
                               .toString()
                               .replaceAll('_', ' ')
                               .toUpperCase(),
@@ -389,7 +445,7 @@ class _PatientAlertsScreenState extends State<PatientAlertsScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          _timeAgo(a['created_at'] ?? ''),
+                          _timeAgo(_getAlertTime(a)),
                           style: TextStyle(
                             fontSize: 11,
                             color: isDark
@@ -498,7 +554,7 @@ class _PatientAlertsScreenState extends State<PatientAlertsScreen> {
                 _buildInfoRow(
                   isDark,
                   AppStrings.get('time', lang),
-                  _formatTimestamp(a['created_at'] ?? ''),
+                  _formatTimestamp(_getAlertTime(a)),
                 ),
 
                 const SizedBox(height: 10),

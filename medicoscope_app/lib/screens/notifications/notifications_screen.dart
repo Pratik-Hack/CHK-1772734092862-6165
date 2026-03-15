@@ -183,6 +183,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   String _timeAgo(String isoDate) {
+    if (isoDate.isEmpty) return '';
     try {
       final date = DateTime.parse(isoDate);
       final diff = DateTime.now().toUtc().difference(date);
@@ -192,6 +193,20 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       return '${diff.inDays}d ago';
     } catch (_) {
       return '';
+    }
+  }
+
+  String _formatTime(String isoDate) {
+    if (isoDate.isEmpty) return 'Unknown';
+    try {
+      final date = DateTime.parse(isoDate).toLocal();
+      final hour = date.hour.toString().padLeft(2, '0');
+      final minute = date.minute.toString().padLeft(2, '0');
+      final day = date.day.toString().padLeft(2, '0');
+      final month = date.month.toString().padLeft(2, '0');
+      return '$day/$month/${date.year} $hour:$minute';
+    } catch (_) {
+      return isoDate;
     }
   }
 
@@ -451,7 +466,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          _timeAgo(a['created_at'] ?? ''),
+                          _timeAgo(a['created_at'] ?? a['timestamp'] ?? ''),
                           style: TextStyle(
                             fontSize: 11,
                             color: isDark
@@ -542,7 +557,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         isDark,
                         Icons.access_time,
                         AppStrings.get('time', lang),
-                        a['timestamp'] ?? '',
+                        _formatTime(a['created_at'] ?? a['timestamp'] ?? ''),
                       ),
 
                       const SizedBox(height: 10),

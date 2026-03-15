@@ -134,4 +134,36 @@ class VitalsService {
 
     await http.delete(url).timeout(const Duration(seconds: 10));
   }
+
+  /// Push a locally-generated alert to the server so it appears in
+  /// both patient and doctor alert dashboards.
+  static Future<void> pushAlert({
+    required String sessionId,
+    required String patientId,
+    required String patientName,
+    required String doctorId,
+    required Map<String, dynamic> alertData,
+  }) async {
+    final url = Uri.parse(
+      '${ApiConstants.chatbotBaseUrl}/vitals/alerts',
+    );
+
+    try {
+      await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'session_id': sessionId,
+              'patient_id': patientId,
+              'patient_name': patientName,
+              'doctor_id': doctorId,
+              ...alertData,
+            }),
+          )
+          .timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Best-effort — don't block monitoring if push fails
+    }
+  }
 }

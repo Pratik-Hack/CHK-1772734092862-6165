@@ -7,6 +7,7 @@ import 'package:medicoscope/core/widgets/glass_card.dart';
 import 'package:medicoscope/services/chat_service.dart';
 import 'package:provider/provider.dart';
 import 'package:medicoscope/core/theme/theme_provider.dart';
+import 'package:medicoscope/core/locale/locale_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -21,6 +22,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<_ChatMessage> _messages = [];
   bool _isLoading = false;
   String? _medicalContext;
+  String _streamingText = '';
 
   @override
   void initState() {
@@ -75,35 +77,53 @@ class _ChatScreenState extends State<ChatScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final sessionId = authProvider.user?.id ?? 'anonymous';
     final patientProfile = _buildPatientProfile(authProvider);
+    final lang =
+        Provider.of<LocaleProvider>(context, listen: false).languageCode;
 
     setState(() {
       _messages.add(_ChatMessage(text: text, isUser: true));
+      _streamingText = '';
       _isLoading = true;
     });
     _controller.clear();
     _scrollToBottom();
 
     try {
-      final response = await ChatService.sendMessage(
+      final stream = ChatService.sendMessageStream(
         message: text,
         sessionId: sessionId,
         patientProfile: patientProfile,
+        language: lang,
         medicalContext: _medicalContext,
       );
 
-      setState(() {
-        _messages.add(_ChatMessage(text: response, isUser: false));
-        _isLoading = false;
-      });
+      await for (final token in stream) {
+        if (mounted) {
+          setState(() => _streamingText += token);
+          _scrollToBottom();
+        }
+      }
 
-      // Save to DB
-      if (authProvider.token != null) {
-        ChatService.saveMessageToDb(
-          token: authProvider.token!,
-          sessionId: sessionId,
-          userMessage: text,
-          assistantMessage: response,
-        );
+      // Streaming complete — move streamed text to messages list
+      if (mounted) {
+        final finalText = _streamingText;
+        setState(() {
+          if (finalText.isNotEmpty) {
+            _messages.add(_ChatMessage(text: finalText, isUser: false));
+          }
+          _streamingText = '';
+          _isLoading = false;
+        });
+
+        // Save to DB
+        if (authProvider.token != null && finalText.isNotEmpty) {
+          ChatService.saveMessageToDb(
+            token: authProvider.token!,
+            sessionId: sessionId,
+            userMessage: text,
+            assistantMessage: finalText,
+          );
+        }
       }
 
       // Award chat coins (max once per day)
@@ -135,13 +155,16 @@ class _ChatScreenState extends State<ChatScreen> {
       } else {
         displayMsg = 'Sorry, I encountered an error. Please try again.';
       }
-      setState(() {
-        _messages.add(_ChatMessage(
-          text: displayMsg,
-          isUser: false,
-        ));
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          if (_streamingText.isNotEmpty) {
+            _messages.add(_ChatMessage(text: _streamingText, isUser: false));
+          }
+          _streamingText = '';
+          _messages.add(_ChatMessage(text: displayMsg, isUser: false));
+          _isLoading = false;
+        });
+      }
     }
 
     _scrollToBottom();
@@ -244,6 +267,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   itemCount: _messages.length + (_isLoading ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == _messages.length && _isLoading) {
+                      if (_streamingText.isNotEmpty) {
+                        return _buildMessageBubble(
+                          _ChatMessage(text: _streamingText, isUser: false),
+                          isDark,
+                        );
+                      }
                       return _buildTypingIndicator(isDark);
                     }
                     return _buildMessageBubble(_messages[index], isDark);

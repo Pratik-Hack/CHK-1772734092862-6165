@@ -116,6 +116,8 @@ class VitalsProvider extends ChangeNotifier {
   DateTime? _sessionStart;
   String _sessionLocation = 'Unknown';
   String _patientName = '';
+  String _patientId = '';
+  String _doctorId = '';
   String _emergencyContactName = '';
   String _emergencyContactPhone = '';
   double _latitude = 0.0;
@@ -135,28 +137,28 @@ class VitalsProvider extends ChangeNotifier {
   static const Duration _normalInterval = Duration(seconds: 2);
   static const Duration _urgentInterval = Duration(milliseconds: 800);
 
-  // ── Medical thresholds ─────────────────────────────────────────────────
+  // ── Medical thresholds (tighter ranges for early detection) ────────────
   static const _hrThreshold = _VitalThreshold(
-    criticalLow: 40,
-    warningLow: 50,
-    warningHigh: 130,
-    criticalHigh: 160,
+    criticalLow: 45,
+    warningLow: 55,
+    warningHigh: 110,
+    criticalHigh: 140,
   );
   static const _systolicThreshold = _VitalThreshold(
-    criticalLow: 70,
+    criticalLow: 75,
     warningLow: 90,
-    warningHigh: 150,
-    criticalHigh: 180,
+    warningHigh: 135,
+    criticalHigh: 160,
   );
   static const _diastolicThreshold = _VitalThreshold(
-    criticalLow: 40,
+    criticalLow: 45,
     warningLow: 60,
-    warningHigh: 95,
-    criticalHigh: 110,
+    warningHigh: 90,
+    criticalHigh: 100,
   );
   static const _spo2Threshold = _VitalThreshold(
-    criticalLow: 88,
-    warningLow: 92,
+    criticalLow: 90,
+    warningLow: 94,
     warningHigh: 101,
     criticalHigh: 101,
   );
@@ -216,6 +218,8 @@ class VitalsProvider extends ChangeNotifier {
       _sessionStart = DateTime.now();
       _sessionLocation = location;
       _patientName = patientName;
+      _patientId = patientId;
+      _doctorId = doctorId;
       _emergencyContactName = emergencyContactName;
       _emergencyContactPhone = emergencyContactPhone;
       _latitude = latitude;
@@ -285,6 +289,33 @@ class VitalsProvider extends ChangeNotifier {
 
       for (final alert in allNewAlerts) {
         _alerts.add(alert);
+      }
+
+      // Push local alerts to server so they appear in alerts dashboard
+      if (localAlerts.isNotEmpty && _sessionId != null) {
+        for (final alert in localAlerts) {
+          VitalsService.pushAlert(
+            sessionId: _sessionId!,
+            patientId: _patientId,
+            patientName: _patientName,
+            doctorId: _doctorId,
+            alertData: {
+              'type': alert.type,
+              'severity': alert.severity,
+              'message': alert.message,
+              'vital': alert.vital,
+              'current_value': alert.currentValue,
+              'predicted_value': alert.predictedValue,
+              'timestamp': alert.timestamp,
+              'location': alert.location,
+              'latitude': alert.latitude,
+              'longitude': alert.longitude,
+              'maps_url': alert.mapsUrl,
+              'emergency_contact_name': alert.emergencyContactName,
+              'emergency_contact_phone': alert.emergencyContactPhone,
+            },
+          );
+        }
       }
 
       // ── Adaptive polling: switch to urgent if any alert is critical ──
@@ -456,8 +487,8 @@ class VitalsProvider extends ChangeNotifier {
     double avgSpo2 =
         recent.map((p) => p.spo2).reduce((a, b) => a + b) / recent.length;
 
-    // Heart rate sudden change > 30 bpm
-    if ((current.heartRate - avgHR).abs() > 30) {
+    // Heart rate sudden change > 20 bpm
+    if ((current.heartRate - avgHR).abs() > 20) {
       final dir = current.heartRate > avgHR ? 'spike' : 'drop';
       final key = 'hr_sudden_$dir';
       if (!_firedLocalAlertKeys.contains(key)) {
@@ -486,8 +517,8 @@ class VitalsProvider extends ChangeNotifier {
       }
     }
 
-    // Systolic sudden change > 30 mmHg
-    if ((current.systolic - avgSys).abs() > 30) {
+    // Systolic sudden change > 20 mmHg
+    if ((current.systolic - avgSys).abs() > 20) {
       final dir = current.systolic > avgSys ? 'spike' : 'drop';
       final key = 'sys_sudden_$dir';
       if (!_firedLocalAlertKeys.contains(key)) {
@@ -516,8 +547,8 @@ class VitalsProvider extends ChangeNotifier {
       }
     }
 
-    // SpO2 sudden drop > 4%
-    if (avgSpo2 - current.spo2 > 4) {
+    // SpO2 sudden drop > 2%
+    if (avgSpo2 - current.spo2 > 2) {
       const key = 'spo2_sudden_drop';
       if (!_firedLocalAlertKeys.contains(key)) {
         _firedLocalAlertKeys.add(key);

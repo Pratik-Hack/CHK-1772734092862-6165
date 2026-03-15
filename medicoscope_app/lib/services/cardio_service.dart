@@ -1,33 +1,36 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:medicoscope/core/constants/api_constants.dart';
 import 'package:medicoscope/models/cardio_result.dart';
+import 'package:medicoscope/services/heart_inference_service.dart';
 
 class CardioService {
+  /// Predict heart condition from audio file using on-device TFLite model.
+  /// Fully offline — no network required.
   static Future<CardioResult> predict(String filePath) async {
-    final url = Uri.parse(
-      '${ApiConstants.cardioBaseUrl}${ApiConstants.cardioPredict}',
-    );
+    // Validate file format
+    final lower = filePath.toLowerCase();
+    if (!lower.endsWith('.wav')) {
+      throw Exception(
+        'Only WAV audio files are supported for offline analysis. '
+        'Please record or select a .wav file.',
+      );
+    }
 
-    final request = http.MultipartRequest('POST', url)
-      ..files.add(await http.MultipartFile.fromPath(
-        'audio_file',
-        filePath,
-        filename: 'heart_sound.wav',
-      ));
-
-    final streamedResponse = await request.send().timeout(
-      const Duration(seconds: 120),
-    );
-    final response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return CardioResult.fromJson(data);
-    } else if (response.statusCode == 503) {
-      throw Exception('Service is warming up. Please try again in a moment.');
-    } else {
-      throw Exception('Heart sound analysis failed: ${response.statusCode}');
+    try {
+      return await HeartInferenceService.predict(filePath);
+    } on FormatException catch (e) {
+      throw Exception('Invalid audio file format: ${e.message}');
+    } catch (e) {
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      if (msg.contains('Invalid WAV')) {
+        throw Exception(
+          'Could not read the audio file. Please ensure it is a valid WAV recording.',
+        );
+      }
+      if (msg.contains('Model') || msg.contains('Interpreter')) {
+        throw Exception(
+          'Heart model failed to load. Please restart the app and try again.',
+        );
+      }
+      throw Exception('Heart sound analysis failed: $msg');
     }
   }
 }
